@@ -24,7 +24,6 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
 body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); overflow-x: hidden; transition: background 0.6s var(--ease), color 0.6s var(--ease); }
-body.no-scroll { overflow: hidden; } /* Prevents scrolling on enter screen */
 a { color: inherit; text-decoration: none; }
 button { font-family: inherit; cursor: pointer; border: none; background: none; }
 
@@ -34,9 +33,12 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   display: flex; align-items: center; justify-content: center;
   transition: opacity 0.8s var(--ease), visibility 0.8s;
 }
-.enter-content { text-align: center; cursor: pointer; }
-.enter-text { font-family: 'Cormorant Garamond', serif; font-size: 32px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--text); transition: 0.4s; }
-.enter-content:hover .enter-text { letter-spacing: 0.5em; opacity: 0.6; }
+.enter-btn { font-family: 'Cormorant Garamond', serif; font-size: 32px; letter-spacing: 0.2em; color: var(--text); text-transform: uppercase; cursor: pointer; }
+
+/* MAIN CONTENT HIDDEN INITIALLY */
+#main-content { opacity: 0; transition: opacity 1s var(--ease); }
+body.site-loaded #main-content { opacity: 1; }
+body.no-scroll { overflow: hidden; }
 
 /* AMBIENT BACKGROUND */
 .ambient-bg { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
@@ -123,13 +125,11 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 24px 48
 </head>
 <body class="no-scroll">
 
-<div id="enter-screen" onclick="initSite()">
-  <div class="enter-content">
-    <div class="enter-text">Enter</div>
-  </div>
+<div id="enter-screen" onclick="startExperience()">
+  <div class="enter-btn">Enter</div>
 </div>
 
-<main id="main-content" style="opacity: 0; transition: opacity 1.5s ease;">
+<main id="main-content">
 <div class="ambient-bg">
   <div class="orb orb-1"></div>
   <div class="orb orb-2"></div>
@@ -234,17 +234,7 @@ const trigger = document.getElementById('m-trigger');
 const panel = document.getElementById('m-panel');
 const vSlider = document.getElementById('v-slider');
 
-player.volume = 0.3; 
-
-// INITIALIZE SITE (Enter Screen Logic)
-function initSite() {
-  document.getElementById('enter-screen').style.opacity = '0';
-  document.getElementById('enter-screen').style.visibility = 'hidden';
-  document.body.classList.remove('no-scroll');
-  document.getElementById('main-content').style.opacity = '1';
-  loadTrack(0);
-  setTimeout(() => { togglePlay(); }, 500); 
-}
+player.volume = 0.3;
 
 vSlider.addEventListener('input', (e) => { player.volume = e.target.value; });
 
@@ -287,10 +277,20 @@ async function togglePlay() {
   }
 }
 
+function startExperience() {
+  document.getElementById('enter-screen').style.opacity = '0';
+  document.getElementById('enter-screen').style.visibility = 'hidden';
+  document.body.classList.add('site-loaded');
+  document.body.classList.remove('no-scroll');
+  loadTrack(0);
+  togglePlay();
+}
+
 function nextTrack() { currentTrack = (currentTrack + 1) % TRACKS.length; loadTrack(currentTrack); if(isPlaying) player.play(); }
 function prevTrack() { currentTrack = (currentTrack - 1 + TRACKS.length) % TRACKS.length; loadTrack(currentTrack); if(isPlaying) player.play(); }
 
 player.addEventListener('ended', nextTrack);
+loadTrack(currentTrack);
 </script>
 </body>
 </html>
