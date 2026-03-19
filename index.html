@@ -10,214 +10,138 @@
 <style>
 :root {
   --bg: #050505; --text: #f5f5f7; --text-muted: #86868b;
-  --surface: rgba(255, 255, 255, 0.04); --surface-hover: rgba(255, 255, 255, 0.08);
-  --border: rgba(255, 255, 255, 0.08); --glass: rgba(10, 10, 10, 0.7);
-  --accent: #fff; --glow: rgba(255, 255, 255, 0.15);
-  --ease: cubic-bezier(0.25, 1, 0.5, 1); --bento-rad: 28px;
+  --surface: rgba(255, 255, 255, 0.04); --border: rgba(255, 255, 255, 0.08);
+  --glass: rgba(10, 10, 10, 0.7); --ease: cubic-bezier(0.25, 1, 0.5, 1);
 }
-[data-theme="light"] {
-  --bg: #f7f5f1; --text: #1d1d1f; --text-muted: #86868b;
-  --surface: rgba(0, 0, 0, 0.03); --surface-hover: rgba(0, 0, 0, 0.06);
-  --border: rgba(0, 0, 0, 0.08); --glass: rgba(247, 245, 241, 0.7);
-  --accent: #000; --glow: rgba(0, 0, 0, 0.1);
-}
+[data-theme="light"] { --bg: #f7f5f1; --text: #1d1d1f; --glass: rgba(247, 245, 241, 0.8); }
+
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
-body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); overflow-x: hidden; transition: background 0.6s var(--ease), color 0.6s var(--ease); }
+body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); overflow: hidden; }
 a { color: inherit; text-decoration: none; }
-button { font-family: inherit; cursor: pointer; border: none; background: none; }
 
-/* AMBIENT BACKGROUND */
+/* ENTER SCREEN */
+#enter-screen {
+  position: fixed; inset: 0; z-index: 9999; background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  transition: opacity 1s var(--ease), visibility 1s;
+}
+.enter-btn {
+  font-family: 'Cormorant Garamond', serif; font-size: 24px; color: var(--text);
+  letter-spacing: 0.2em; text-transform: uppercase; cursor: pointer;
+  padding: 20px; transition: 0.3s;
+}
+.enter-btn:hover { letter-spacing: 0.4em; opacity: 0.7; }
+body.loaded { overflow-y: auto; }
+body.loaded #enter-screen { opacity: 0; visibility: hidden; }
+
+/* MAIN CONTENT */
+main { opacity: 0; transition: opacity 2s var(--ease); }
+body.loaded main { opacity: 1; }
+
 .ambient-bg { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
-.orb { position: absolute; border-radius: 50%; filter: blur(120px); opacity: 0.6; transition: background 0.6s ease; }
-.orb-1 { width: 60vw; height: 60vw; top: -20%; left: -10%; background: radial-gradient(circle, var(--glow), transparent 70%); animation: float1 20s infinite alternate ease-in-out; }
-.orb-2 { width: 50vw; height: 50vw; bottom: -10%; right: -10%; background: radial-gradient(circle, var(--glow), transparent 70%); animation: float2 25s infinite alternate ease-in-out; }
-@keyframes float1 { 0% { transform: translate(0, 0); } 100% { transform: translate(10%, 10%); } }
-@keyframes float2 { 0% { transform: translate(0, 0); } 100% { transform: translate(-10%, -15%); } }
+.orb { position: absolute; border-radius: 50%; filter: blur(120px); opacity: 0.4; background: radial-gradient(circle, #fff, transparent 70%); }
+.orb-1 { width: 60vw; height: 60vw; top: -20%; left: -10%; animation: float 20s infinite alternate ease-in-out; }
+@keyframes float { 0% { transform: translate(0,0); } 100% { transform: translate(10%, 10%); } }
 
-/* NAV */
-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 24px 48px; display: flex; justify-content: space-between; align-items: center; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); background: linear-gradient(to bottom, var(--bg) 0%, transparent 100%); }
-.nav-logo { font-family: 'Cormorant Garamond', serif; font-size: 24px; font-weight: 600; letter-spacing: 0.1em; }
-.nav-links { display: flex; gap: 32px; list-style: none; }
-.nav-links a { font-size: 11px; text-transform: uppercase; letter-spacing: 0.2em; color: var(--text-muted); transition: color 0.3s; }
-.nav-links a:hover { color: var(--text); }
+nav { position: fixed; top: 0; width: 100%; z-index: 100; padding: 24px 48px; display: flex; justify-content: space-between; align-items: center; backdrop-filter: blur(20px); }
+.nav-logo { font-family: 'Cormorant Garamond', serif; font-size: 24px; font-weight: 600; }
+.hero { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+.hero-title { font-family: 'Cormorant Garamond', serif; font-size: clamp(80px, 15vw, 200px); font-weight: 300; line-height: 0.9; }
 
-/* HERO */
-.hero { min-height: 100svh; display: flex; flex-direction: column; justify-content: center; padding: 0 48px; position: relative; }
-.hero-content { max-width: 1000px; margin: 0 auto; text-align: center; width: 100%; }
-.hero-title { font-family: 'Cormorant Garamond', serif; font-size: clamp(80px, 15vw, 220px); font-weight: 300; line-height: 0.9; letter-spacing: -0.02em; opacity: 0; transform: translateY(30px); animation: fadeUp 1s 0.2s var(--ease) forwards; }
-.hero-tag { font-size: clamp(14px, 2vw, 18px); color: var(--text-muted); letter-spacing: 0.2em; text-transform: uppercase; margin-top: 24px; font-weight: 300; opacity: 0; transform: translateY(20px); animation: fadeUp 1s 0.4s var(--ease) forwards; }
-@keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
-
-/* BENTO SECTION */
 .section { padding: 120px 48px; max-width: 1400px; margin: 0 auto; }
-.sec-header { margin-bottom: 64px; text-align: center; }
-.sec-title { font-family: 'Cormorant Garamond', serif; font-size: 48px; font-weight: 300; }
-.sec-sub { font-size: 12px; text-transform: uppercase; letter-spacing: 0.2em; color: var(--text-muted); margin-bottom: 12px; }
 .bento { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; grid-auto-rows: 280px; }
-.bento-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--bento-rad); padding: 40px; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); display: flex; flex-direction: column; justify-content: center; transition: transform 0.4s var(--ease), background 0.4s var(--ease); overflow: hidden; position: relative; }
-.bento-card:hover { transform: translateY(-4px); background: var(--surface-hover); }
+.bento-card { background: var(--surface); border: 1px solid var(--border); border-radius: 28px; padding: 40px; display: flex; flex-direction: column; justify-content: center; }
 .card-span-2 { grid-column: span 2; }
-.card-span-4 { grid-column: span 4; }
-.bento-h { font-family: 'Cormorant Garamond', serif; font-size: 42px; font-weight: 300; line-height: 1.1; margin-bottom: 16px; }
-.bento-p { font-size: 15px; color: var(--text-muted); line-height: 1.6; }
-.bento-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; }
-.b-tag { padding: 8px 16px; border: 1px solid var(--border); border-radius: 40px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text); }
-.bento-visual { background: linear-gradient(135deg, rgba(255,255,255,0.05), transparent); align-items: center; text-align: center; }
-.bento-visual .ring { width: 120px; height: 120px; border-radius: 50%; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 24px; color: var(--text-muted); }
-
-/* CONTACT */
-.contact-wrap { text-align: center; max-width: 600px; margin: 0 auto; padding: 60px 0; }
-.contact-link { display: inline-block; font-size: clamp(24px, 4vw, 42px); font-family: 'Cormorant Garamond', serif; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 48px; transition: border-color 0.3s; }
-.contact-link:hover { border-color: var(--text); }
-.socials { display: flex; justify-content: center; gap: 32px; list-style: none; flex-wrap: wrap; }
-.socials a { font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); transition: color 0.3s; }
-.socials a:hover { color: var(--text); }
+.socials { display: flex; justify-content: center; gap: 32px; list-style: none; margin-top: 40px; }
+.socials a { font-size: 12px; text-transform: uppercase; color: var(--text-muted); }
 
 /* MUSIC PLAYER */
-.music-trigger { position: fixed; bottom: 32px; right: 48px; z-index: 100; padding: 14px 24px; border-radius: 40px; background: var(--surface); border: 1px solid var(--border); backdrop-filter: blur(10px); color: var(--text); font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; display: flex; align-items: center; gap: 12px; transition: transform 0.3s; }
-.music-trigger.is-playing .dot { background: #10b981; box-shadow: 0 0 10px #10b981; animation: pulse 1.5s infinite; }
-.dot { width: 6px; height: 6px; background: var(--text-muted); border-radius: 50%; }
-@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
-
+.music-trigger { position: fixed; bottom: 32px; right: 48px; z-index: 100; padding: 14px 24px; border-radius: 40px; background: var(--surface); border: 1px solid var(--border); backdrop-filter: blur(10px); color: var(--text); font-size: 11px; text-transform: uppercase; display: flex; align-items: center; gap: 12px; }
 .music-panel { position: fixed; top: 0; right: -400px; bottom: 0; width: 380px; z-index: 200; background: var(--glass); backdrop-filter: blur(30px); border-left: 1px solid var(--border); padding: 48px 32px; display: flex; flex-direction: column; transition: right 0.6s var(--ease); }
 .music-panel.open { right: 0; }
-.panel-close { position: absolute; top: 24px; right: 24px; font-size: 24px; color: var(--text-muted); }
-
-.player-art-wrap { width: 100%; aspect-ratio: 1; border-radius: 20px; background: var(--surface); margin-bottom: 24px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); overflow: hidden; background-size: cover; background-position: center; transition: all 0.5s ease; }
-.player-info { text-align: center; margin-bottom: 24px; }
-.song-title { font-family: 'Cormorant Garamond', serif; font-size: 24px; font-weight: 600; }
-.song-artist { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
-
-/* VOLUME SLIDER */
-.volume-container { display: flex; align-items: center; gap: 12px; margin-bottom: 32px; padding: 0 10px; }
-.volume-slider { width: 100%; height: 4px; -webkit-appearance: none; background: var(--border); border-radius: 2px; outline: none; }
+.player-art-wrap { width: 100%; aspect-ratio: 1; border-radius: 20px; background: var(--surface); margin-bottom: 24px; border: 1px solid var(--border); background-size: cover; background-position: center; display: flex; align-items: center; justify-content: center; }
+.volume-slider { width: 100%; height: 4px; -webkit-appearance: none; background: var(--border); margin: 20px 0; outline: none; border-radius: 2px; }
 .volume-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; background: var(--text); border-radius: 50%; cursor: pointer; }
 
-.controls { display: flex; align-items: center; justify-content: center; gap: 24px; }
-.ctrl-btn { color: var(--text); padding: 12px; border-radius: 50%; display: flex; }
-.play-btn { background: var(--text); color: var(--bg); padding: 16px; border-radius: 50%; }
-
-/* UTILS */
-.reveal { opacity: 0; transform: translateY(40px); transition: all 1s var(--ease); }
-.reveal.vis { opacity: 1; transform: none; }
-.theme-toggle { position: fixed; bottom: 32px; left: 48px; z-index: 100; width: 48px; height: 48px; border-radius: 50%; background: var(--surface); border: 1px solid var(--border); color: var(--text); display: flex; align-items: center; justify-content: center; transition: 0.3s; }
-.theme-toggle:hover { transform: scale(1.1); }
-.moon-icon { display: none; }
-[data-theme="light"] .sun-icon { display: none; }
-[data-theme="light"] .moon-icon { display: block; }
-
-@media (max-width: 900px) { .bento { grid-template-columns: 1fr; } .card-span-2, .card-span-4 { grid-column: span 1; } .music-panel { width: 100%; right: -100%; } }
+.controls { display: flex; justify-content: center; gap: 24px; align-items: center; }
+.play-btn { background: var(--text); color: var(--bg); width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; }
 </style>
 </head>
 <body>
 
-<div class="ambient-bg">
-  <div class="orb orb-1"></div>
-  <div class="orb orb-2"></div>
+<div id="enter-screen" onclick="startSite()">
+  <div class="enter-btn">Enter</div>
 </div>
 
-<nav>
-  <div class="nav-logo">Nihi</div>
-  <ul class="nav-links">
-    <li><a href="#about">About</a></li>
-    <li><a href="#contact">Contact</a></li>
-  </ul>
-</nav>
+<main>
+  <div class="ambient-bg"><div class="orb orb-1"></div></div>
+  <nav><div class="nav-logo">Nihi</div></nav>
 
-<section class="hero">
-  <div class="hero-content">
+  <section class="hero">
     <h1 class="hero-title">NIHI</h1>
-    <p class="hero-tag">I make things.</p>
-  </div>
-</section>
+    <p style="letter-spacing: 0.2em; color: var(--text-muted); margin-top: 20px;">I make things.</p>
+  </section>
 
-<section class="section" id="about">
-  <div class="sec-header reveal">
-    <div class="sec-sub">About Me</div>
-    <h2 class="sec-title">Visuals & Management</h2>
-  </div>
-  <div class="bento reveal">
-    <div class="bento-card card-span-2">
-      <h3 class="bento-h">I like random stuff.</h3>
-      <p class="bento-p">Currently learning visual design and After Effects. Still working on something worth showing.</p>
+  <section class="section" id="about">
+    <div class="bento">
+      <div class="bento-card card-span-2"><h3 style="font-family: 'Cormorant Garamond', serif; font-size: 32px;">Visuals & Management</h3><p style="color:var(--text-muted); margin-top:10px;">Currently learning After Effects & Design.</p></div>
+      <div class="bento-card card-span-2"><p style="font-size:12px; text-transform:uppercase; color:var(--text-muted);">Interests</p><p>Fashion • Music • Art • Design</p></div>
     </div>
-    <div class="bento-card card-span-2">
-      <h3 class="bento-h">Interests</h3>
-      <div class="bento-tags">
-        <span class="b-tag">Fashion</span><span class="b-tag">Music</span><span class="b-tag">Art</span><span class="b-tag">After Effects</span><span class="b-tag">Design</span>
-      </div>
-    </div>
-    <div class="bento-card card-span-4 bento-visual">
-      <div class="ring">✦</div>
-      <p style="margin-top: 24px; color: var(--text-muted); font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase;">Nothing yet, Sorry!</p>
-    </div>
-  </div>
-</section>
+  </section>
 
-<section class="section" id="contact">
-  <div class="contact-wrap reveal">
-    <a href="mailto:nihil.us.noodle1@proton.me" class="contact-link">Find me ↗</a>
+  <section class="section" id="contact" style="text-align:center;">
+    <a href="mailto:nihil.us.noodle1@proton.me" style="font-family: 'Cormorant Garamond', serif; font-size: 42px; border-bottom: 1px solid var(--border);">Find me ↗</a>
     <ul class="socials">
       <li><a href="https://discord.com/users/647532622523793429" target="_blank">Discord</a></li>
       <li><a href="https://x.com/NoodleDragon10" target="_blank">Twitter</a></li>
       <li><a href="https://guns.lol/nihi" target="_blank">Guns.lol</a></li>
       <li><a href="https://www.roblox.com/users/570659566/profile" target="_blank">Roblox</a></li>
     </ul>
-  </div>
-</section>
+  </section>
+</main>
 
-<button class="theme-toggle" onclick="toggleTheme()"><svg class="sun-icon" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg><svg class="moon-icon" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
-
-<button class="music-trigger" id="m-trigger" onclick="togglePlayer()"><div class="dot"></div> Music</button>
+<button class="music-trigger" onclick="togglePlayer()"><div id="m-dot" style="width:6px; height:6px; background:#86868b; border-radius:50%;"></div> Music</button>
 
 <div class="music-panel" id="m-panel">
-  <button class="panel-close" onclick="togglePlayer()">×</button>
-  <div style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.2em; color: var(--text-muted); margin-bottom: 24px;">Now Playing</div>
-  
-  <div class="player-art-wrap" id="m-art">
-    <span id="art-placeholder" style="font-family: 'Cormorant Garamond', serif; font-size: 64px; color: var(--text-muted);">♫</span>
+  <button style="position:absolute; top:20px; right:20px; font-size:24px; color:var(--text-muted);" onclick="togglePlayer()">×</button>
+  <div class="player-art-wrap" id="m-art"><span id="art-placeholder" style="font-size:48px;">♫</span></div>
+  <div style="text-align:center; margin-bottom:20px;">
+    <div id="s-title" style="font-family:'Cormorant Garamond', serif; font-size:24px; font-weight:600;">Track Title</div>
+    <div id="s-artist" style="font-size:12px; color:var(--text-muted);">Artist Name</div>
   </div>
-  
-  <div class="player-info">
-    <div class="song-title" id="s-title">Track Title</div>
-    <div class="song-artist" id="s-artist">Artist Name</div>
-  </div>
-
-  <div class="volume-container">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5zM19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
-    <input type="range" class="volume-slider" id="v-slider" min="0" max="1" step="0.01" value="0.3">
-  </div>
-  
+  <input type="range" class="volume-slider" id="v-slider" min="0" max="1" step="0.01" value="0.2">
   <div class="controls">
-    <button class="ctrl-btn" onclick="prevTrack()"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/></svg></button>
-    <button class="ctrl-btn play-btn" onclick="togglePlay()"><svg id="play-icon" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg><svg id="pause-icon" style="display:none;" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg></button>
-    <button class="ctrl-btn" onclick="nextTrack()"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg></button>
+    <button onclick="prevTrack()" style="font-size:20px; color:var(--text);">⏮</button>
+    <button class="play-btn" onclick="togglePlay()" id="play-trigger">▶</button>
+    <button onclick="nextTrack()" style="font-size:20px; color:var(--text);">⏭</button>
   </div>
-  <audio id="audio-player"></audio>
 </div>
 
+<audio id="audio-player"></audio>
+
 <script>
-const observer = new IntersectionObserver((entries) => { entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('vis'); }); }, { threshold: 0.1 });
-document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
-
-function toggleTheme() { const html = document.documentElement; html.setAttribute('data-theme', html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'); }
-
+// --- CONFIGURATION ---
 const TRACKS = [
-  { title: 'Khel', artist: 'Khel', file: 'music/khel.mp3', cover: 'music/khel.jpg' },
-  { title: 'Confetti', artist: 'Cannons', file: 'music/confetti.mp3', cover: 'music/confetti.jpg' },
-  { title: 'Spade', artist: 'Spade', file: 'music/spade.mp3', cover: 'music/spade.jpg' }
+  { title: 'Khel', artist: 'Khel', file: 'music/khel.mp3', cover: 'music/khel.jpeg' },
+  { title: 'Confetti', artist: 'Cannons', file: 'music/confetti.mp3', cover: 'music/confetti.jpeg' },
+  { title: 'Spade', artist: 'Spade', file: 'music/spade.mp3', cover: 'music/spade.jpeg' }
 ];
 
-let isPlaying = false; let currentTrack = 0;
+let isPlaying = false; 
+let currentTrack = 0;
 const player = document.getElementById('audio-player');
-const trigger = document.getElementById('m-trigger');
 const panel = document.getElementById('m-panel');
 const vSlider = document.getElementById('v-slider');
 
-player.volume = 0.3; // Start volume at 30%
+player.volume = 0.2; // Default volume set to 20%
 
-vSlider.addEventListener('input', (e) => { player.volume = e.target.value; });
+function startSite() {
+  document.body.classList.add('loaded');
+  loadTrack(0);
+  // Auto-play might still be blocked if the "Enter" click wasn't enough 
+  // but usually this works perfectly for modern browsers.
+  setTimeout(() => { togglePlay(); }, 100);
+}
 
 function togglePlayer() { panel.classList.toggle('open'); }
 
@@ -241,27 +165,30 @@ function loadTrack(index) {
 }
 
 async function togglePlay() {
+  const btn = document.getElementById('play-trigger');
+  const dot = document.getElementById('m-dot');
   if (isPlaying) {
     player.pause();
-    document.getElementById('play-icon').style.display = 'block';
-    document.getElementById('pause-icon').style.display = 'none';
-    trigger.classList.remove('is-playing');
+    btn.textContent = '▶';
+    dot.style.background = '#86868b';
+    isPlaying = false;
   } else {
     try {
       await player.play();
-      document.getElementById('play-icon').style.display = 'none';
-      document.getElementById('pause-icon').style.display = 'block';
-      trigger.classList.add('is-playing');
-    } catch (e) { console.error("Playback failed. Make sure filenames match exactly."); }
+      btn.textContent = '⏸';
+      dot.style.background = '#10b981';
+      isPlaying = true;
+    } catch (e) { 
+      console.error("Playback failed: Ensure files exist and you clicked 'Enter'."); 
+    }
   }
-  isPlaying = !isPlaying;
 }
 
 function nextTrack() { currentTrack = (currentTrack + 1) % TRACKS.length; loadTrack(currentTrack); if(isPlaying) player.play(); }
 function prevTrack() { currentTrack = (currentTrack - 1 + TRACKS.length) % TRACKS.length; loadTrack(currentTrack); if(isPlaying) player.play(); }
 
+vSlider.addEventListener('input', (e) => { player.volume = e.target.value; });
 player.addEventListener('ended', nextTrack);
-loadTrack(currentTrack);
 </script>
 </body>
 </html>
