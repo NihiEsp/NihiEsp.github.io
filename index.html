@@ -84,10 +84,16 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 24px 48
 .music-panel.open { right: 0; }
 .panel-close { position: absolute; top: 24px; right: 24px; font-size: 24px; color: var(--text-muted); }
 
-.player-art-wrap { width: 100%; aspect-ratio: 1; border-radius: 20px; background: var(--surface); margin-bottom: 32px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); overflow: hidden; background-size: cover; background-position: center; transition: all 0.5s ease; }
-.player-info { text-align: center; margin-bottom: 32px; }
+.player-art-wrap { width: 100%; aspect-ratio: 1; border-radius: 20px; background: var(--surface); margin-bottom: 24px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); overflow: hidden; background-size: cover; background-position: center; transition: all 0.5s ease; }
+.player-info { text-align: center; margin-bottom: 24px; }
 .song-title { font-family: 'Cormorant Garamond', serif; font-size: 24px; font-weight: 600; }
 .song-artist { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+
+/* VOLUME SLIDER */
+.volume-container { display: flex; align-items: center; gap: 12px; margin-bottom: 32px; padding: 0 10px; }
+.volume-slider { width: 100%; height: 4px; -webkit-appearance: none; background: var(--border); border-radius: 2px; outline: none; }
+.volume-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; background: var(--text); border-radius: 50%; cursor: pointer; }
+
 .controls { display: flex; align-items: center; justify-content: center; gap: 24px; }
 .ctrl-btn { color: var(--text); padding: 12px; border-radius: 50%; display: flex; }
 .play-btn { background: var(--text); color: var(--bg); padding: 16px; border-radius: 50%; }
@@ -167,9 +173,22 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 24px 48
 
 <div class="music-panel" id="m-panel">
   <button class="panel-close" onclick="togglePlayer()">×</button>
-  <div style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.2em; color: var(--text-muted); margin-bottom: 32px;">Now Playing</div>
-  <div class="player-art-wrap" id="m-art"><span id="art-placeholder" style="font-family: 'Cormorant Garamond', serif; font-size: 64px; color: var(--text-muted);">♫</span></div>
-  <div class="player-info"><div class="song-title" id="s-title">Track Title</div><div class="song-artist" id="s-artist">Artist Name</div></div>
+  <div style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.2em; color: var(--text-muted); margin-bottom: 24px;">Now Playing</div>
+  
+  <div class="player-art-wrap" id="m-art">
+    <span id="art-placeholder" style="font-family: 'Cormorant Garamond', serif; font-size: 64px; color: var(--text-muted);">♫</span>
+  </div>
+  
+  <div class="player-info">
+    <div class="song-title" id="s-title">Track Title</div>
+    <div class="song-artist" id="s-artist">Artist Name</div>
+  </div>
+
+  <div class="volume-container">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5zM19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+    <input type="range" class="volume-slider" id="v-slider" min="0" max="1" step="0.01" value="0.3">
+  </div>
+  
   <div class="controls">
     <button class="ctrl-btn" onclick="prevTrack()"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/></svg></button>
     <button class="ctrl-btn play-btn" onclick="togglePlay()"><svg id="play-icon" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg><svg id="pause-icon" style="display:none;" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg></button>
@@ -184,7 +203,6 @@ document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
 function toggleTheme() { const html = document.documentElement; html.setAttribute('data-theme', html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'); }
 
-/* ═══ UPDATED TRACK LIST ═══ */
 const TRACKS = [
   { title: 'Khel', artist: 'Khel', file: 'music/khel.mp3', cover: 'music/khel.jpg' },
   { title: 'Confetti', artist: 'Cannons', file: 'music/confetti.mp3', cover: 'music/confetti.jpg' },
@@ -195,6 +213,11 @@ let isPlaying = false; let currentTrack = 0;
 const player = document.getElementById('audio-player');
 const trigger = document.getElementById('m-trigger');
 const panel = document.getElementById('m-panel');
+const vSlider = document.getElementById('v-slider');
+
+player.volume = 0.3; // Start volume at 30%
+
+vSlider.addEventListener('input', (e) => { player.volume = e.target.value; });
 
 function togglePlayer() { panel.classList.toggle('open'); }
 
@@ -229,7 +252,7 @@ async function togglePlay() {
       document.getElementById('play-icon').style.display = 'none';
       document.getElementById('pause-icon').style.display = 'block';
       trigger.classList.add('is-playing');
-    } catch (e) { console.error("Playback blocked. Click the page first."); }
+    } catch (e) { console.error("Playback failed. Make sure filenames match exactly."); }
   }
   isPlaying = !isPlaying;
 }
