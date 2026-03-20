@@ -801,10 +801,10 @@ const VIZ_FS = `
     // dark mode: neon pops on near-black
     // light mode: same hues but on cream, slightly desaturated
     float lt = u_theme;
-    vec3 hotPink   = mix(vec3(1.0, 0.08, 0.55), vec3(0.90, 0.05, 0.45), lt);
-    vec3 cyan      = mix(vec3(0.0, 0.95, 0.95), vec3(0.0,  0.70, 0.75), lt);
-    vec3 yellow    = mix(vec3(1.0, 0.95, 0.0),  vec3(0.85, 0.78, 0.0),  lt);
-    vec3 lime      = mix(vec3(0.4, 1.0,  0.2),  vec3(0.25, 0.75, 0.15), lt);
+    vec3 hotPink   = mix(vec3(1.0, 0.08, 0.55), vec3(0.95, 0.02, 0.50), lt);
+    vec3 cyan      = mix(vec3(0.0, 0.95, 0.95), vec3(0.0,  0.85, 0.88), lt);
+    vec3 yellow    = mix(vec3(1.0, 0.95, 0.0),  vec3(0.92, 0.88, 0.0),  lt);
+    vec3 lime      = mix(vec3(0.4, 1.0,  0.2),  vec3(0.30, 0.88, 0.18), lt);
     vec3 bgBase    = mix(vec3(0.04,0.03,0.06),  vec3(0.97,0.95,0.90),   lt);
 
     // ── 1. SPINNING PINWHEEL STRIPES (background) ─────────────────────
@@ -824,7 +824,7 @@ const VIZ_FS = `
     float bandOuter = 0.55 + mid * 0.08;
     float inBand    = smoothstep(bandInner, bandInner+0.02, dist)
                     * smoothstep(bandOuter+0.02, bandOuter, dist);
-    vec3 bgLayer    = mix(bgBase, stripeCol * 0.55, inBand);
+    vec3 bgLayer    = mix(bgBase, stripeCol * 0.85, inBand);
 
     // ── 2. RADIAL BURST LINES (like circus tent) ──────────────────────
     float burstN  = 24.0;
@@ -833,7 +833,7 @@ const VIZ_FS = `
                   * smoothstep(0.52, 0.48, dist)
                   * smoothstep(0.0,  0.12, dist)
                   * (0.25 + hi * 0.4);
-    bgLayer += mix(vec3(1.0), vec3(0.1), lt) * burst * 0.35;
+    bgLayer += mix(vec3(1.0), vec3(0.05), lt) * burst * 0.6;
 
     // ── 3. FLOATING SPARKLE STARS ─────────────────────────────────────
     float starGlow = 0.0;
@@ -855,7 +855,7 @@ const VIZ_FS = `
       starGlow += smoothstep(sz, 0.0, star4);
     }
     vec3 starCol = mix(yellow, hotPink, sin(u_time*1.3)*0.5+0.5);
-    bgLayer += starCol * clamp(starGlow, 0.0, 1.0) * 0.9;
+    bgLayer += starCol * clamp(starGlow, 0.0, 1.0) * 1.5;
 
     // ── 4. CHECKERBOARD CENTRE DISC ───────────────────────────────────
     float gridS  = 0.07 + bass * 0.02;
@@ -865,12 +865,12 @@ const VIZ_FS = `
     vec3  checkB = mix(vec3(0.05,0.04,0.08), vec3(0.15,0.1,0.2), lt);
     vec3  checkCol = mix(checkB, checkA, checker);
     float inDisc = smoothstep(0.17+bass*0.04, 0.14+bass*0.04, dist);
-    bgLayer = mix(bgLayer, checkCol, inDisc * 0.7);
+    bgLayer = mix(bgLayer, checkCol, inDisc * 0.95);
 
     // ── 5. MAIN WAVEFORM RING ─────────────────────────────────────────
-    float baseR = 0.30;
-    float ring  = lineSDF(dist, baseR + f*0.13, 0.010);
-    float halo  = lineSDF(dist, baseR + f*0.13 + 0.02, 0.022) * f * 0.5;
+    float baseR = 0.22;
+    float ring  = lineSDF(dist, baseR + f*0.13, 0.014);
+    float halo  = lineSDF(dist, baseR + f*0.13 + 0.02, 0.022) * f * 0.9;
     float guide = lineSDF(dist, baseR*0.65, 0.003) * 0.3;
     float dotP  = lineSDF(dist, 0.0, 0.03*bass) * bass * 0.9;
 
