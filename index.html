@@ -113,6 +113,17 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 body.site-loaded #main-content { opacity: 1; }
 body.no-scroll { overflow: hidden; }
 
+/* CUSTOM SCROLLBAR */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 999px;
+  transition: background 0.3s;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+* { scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+
 /* SHADER BACKGROUND */
 #shader-canvas { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; opacity: 0.8; transition: opacity 0.6s ease; }
 
@@ -820,8 +831,8 @@ const VIZ_FS = `
     else                   stripeCol = lime;
 
     // only show stripes within a ring band — react to mid energy
-    float bandInner = 0.44;
-    float bandOuter = 0.55 + mid * 0.08;
+    float bandInner = 0.34;
+    float bandOuter = 0.42 + mid * 0.05;
     float inBand    = smoothstep(bandInner, bandInner+0.02, dist)
                     * smoothstep(bandOuter+0.02, bandOuter, dist);
     vec3 bgLayer    = mix(bgBase, stripeCol * 0.85, inBand);
@@ -841,8 +852,8 @@ const VIZ_FS = `
       float fi  = float(i);
       float spd = 0.12 + fi * 0.07;
       vec2 sp   = vec2(
-        cos(u_time*spd + fi*1.3) * (0.36 + fi*0.03),
-        sin(u_time*spd*1.4 + fi*0.9) * (0.36 + fi*0.03)
+        cos(u_time*spd + fi*1.3) * (0.22 + fi*0.02),
+        sin(u_time*spd*1.4 + fi*0.9) * (0.22 + fi*0.02)
       );
       float sd  = length(uv - sp);
       // 4-point star shape: min of two stretched discs
@@ -864,11 +875,11 @@ const VIZ_FS = `
     vec3  checkA = mix(hotPink*0.6, vec3(0.9,0.85,0.8), lt);
     vec3  checkB = mix(vec3(0.05,0.04,0.08), vec3(0.15,0.1,0.2), lt);
     vec3  checkCol = mix(checkB, checkA, checker);
-    float inDisc = smoothstep(0.17+bass*0.04, 0.14+bass*0.04, dist);
+    float inDisc = smoothstep(0.13+bass*0.03, 0.10+bass*0.03, dist);
     bgLayer = mix(bgLayer, checkCol, inDisc * 0.95);
 
     // ── 5. MAIN WAVEFORM RING ─────────────────────────────────────────
-    float baseR = 0.22;
+    float baseR = 0.32;
     float ring  = lineSDF(dist, baseR + f*0.13, 0.014);
     float halo  = lineSDF(dist, baseR + f*0.13 + 0.02, 0.022) * f * 0.9;
     float guide = lineSDF(dist, baseR*0.65, 0.003) * 0.3;
@@ -883,9 +894,9 @@ const VIZ_FS = `
     vec3  col      = mix(bgLayer, ringLayer, ringMask);
 
     // vignette
-    float vig   = 1.0 - smoothstep(0.48, 0.60, dist);
+    float vig   = 1.0 - smoothstep(0.38, 0.50, dist);
     col        *= vig;
-    float alpha = vig * smoothstep(0.58, 0.50, dist);
+    float alpha = vig * smoothstep(0.48, 0.40, dist);
     alpha       = max(alpha, ringMask * vig);
 
     gl_FragColor = vec4(col, alpha);
