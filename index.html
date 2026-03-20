@@ -978,8 +978,9 @@ function drawViz(){
 }
 
 function stopViz(){
-  if(vizRaf)cancelAnimationFrame(vizRaf);
-  if(vizGl){vizGl.clearColor(0,0,0,0);vizGl.clear(vizGl.COLOR_BUFFER_BIT);}
+  // Don't cancel — just let analyser drain to silence naturally.
+  // The ring keeps spinning with no input which looks better than disappearing.
+  // vizRaf keeps going; drawViz() already loops itself.
 }
 
 async function togglePlay() {
@@ -1156,19 +1157,26 @@ async function fetchNowPlaying() {
     if (!res.ok) throw new Error('lfm ' + res.status);
     const data = await res.json();
     const track = data.recenttracks?.track?.[0];
-    if (!track) return;
+    const isLive = track?.['@attr']?.nowplaying === 'true';
 
-    const title    = track.name;
-    const artist   = track.artist?.['#text'] || '';
-    const isLive   = track['@attr']?.nowplaying === 'true';
+    if (!track || !isLive) {
+      // Nothing currently scrobbling — show idle state
+      document.getElementById('curr-track').textContent           = 'nothing on';
+      document.getElementById('curr-artist').textContent          = '';
+      document.getElementById('curr-artist-static').textContent   = 'not listening';
+      document.getElementById('curr-live-wrap').style.display     = 'none';
+      document.getElementById('curr-artist-static').style.display = 'block';
+      return;
+    }
 
-    document.getElementById('curr-track').textContent  = title;
-    document.getElementById('curr-artist').textContent = artist;
-    document.getElementById('curr-artist-static').textContent = artist;
+    const title  = track.name;
+    const artist = track.artist?.['#text'] || '';
 
-    // show live dot if currently scrobbling, plain sub if recent
-    document.getElementById('curr-live-wrap').style.display    = isLive ? 'flex' : 'none';
-    document.getElementById('curr-artist-static').style.display = isLive ? 'none' : 'block';
+    document.getElementById('curr-track').textContent           = title;
+    document.getElementById('curr-artist').textContent          = artist;
+    document.getElementById('curr-artist-static').textContent   = artist;
+    document.getElementById('curr-live-wrap').style.display     = 'flex';
+    document.getElementById('curr-artist-static').style.display = 'none';
   } catch(e) {
     console.warn('Last.fm fetch failed:', e);
   }
