@@ -33,13 +33,80 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 /* ENTER SCREEN */
 #enter-screen {
-  position: fixed; inset: 0; z-index: 9999; background: var(--bg);
+  position: fixed; inset: 0; z-index: 9999; background: #050505;
   display: flex; align-items: center; justify-content: center;
-  transition: opacity 0.8s var(--ease);
+  transition: opacity 1s var(--ease);
+  overflow: hidden;
 }
 #enter-screen.dismissed { opacity: 0; pointer-events: none; }
-.enter-btn { font-family: 'Cormorant Garamond', serif; font-size: 32px; letter-spacing: 0.2em; color: var(--text); text-transform: uppercase; cursor: pointer; transition: transform 0.3s; }
-.enter-btn:hover { transform: scale(1.05); }
+#enter-canvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; }
+
+.enter-content {
+  position: relative; z-index: 1;
+  display: flex; flex-direction: column; align-items: center; gap: 0;
+  user-select: none;
+}
+
+/* decorative lines that sweep in */
+.enter-line {
+  width: 1px; background: rgba(255,255,255,0.15);
+  position: absolute; top: 0; bottom: 0;
+  transform: scaleY(0); transform-origin: center;
+}
+.enter-line-h {
+  height: 1px; background: rgba(255,255,255,0.15);
+  position: absolute; left: 0; right: 0;
+  transform: scaleX(0); transform-origin: center;
+}
+
+/* big name — each letter is a span */
+.enter-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(100px, 20vw, 280px);
+  font-weight: 300; line-height: 0.85;
+  letter-spacing: -0.02em; color: #f5f5f7;
+  display: flex; overflow: hidden;
+}
+.enter-name span {
+  display: inline-block;
+  transform: translateY(110%);
+  opacity: 0;
+}
+
+.enter-sub {
+  font-size: 11px; text-transform: uppercase; letter-spacing: 0.35em;
+  color: rgba(255,255,255,0.35); margin-top: 20px;
+  opacity: 0; transform: translateY(10px);
+}
+
+/* breathing ring button */
+.enter-ring-wrap {
+  margin-top: 56px; position: relative;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0;
+}
+.enter-ring {
+  width: 88px; height: 88px; border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.25);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: border-color 0.4s;
+  animation: ring-breathe 3s ease-in-out infinite;
+}
+.enter-ring:hover { border-color: rgba(255,255,255,0.7); }
+.enter-ring:hover .enter-ring-label { color: #fff; }
+.enter-ring-pulse {
+  position: absolute; inset: -10px; border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.08);
+  animation: ring-breathe 3s ease-in-out infinite 0.4s;
+}
+.enter-ring-label {
+  font-size: 9px; text-transform: uppercase; letter-spacing: 0.25em;
+  color: rgba(255,255,255,0.5); transition: color 0.4s;
+}
+@keyframes ring-breathe {
+  0%, 100% { transform: scale(1);   opacity: 1;   }
+  50%       { transform: scale(1.06); opacity: 0.7; }
+}
 
 /* MAIN CONTENT HIDDEN INITIALLY */
 #main-content { opacity: 0; transition: opacity 1s var(--ease); }
@@ -90,6 +157,48 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 24px 48
 .b-tag { padding: 8px 16px; border: 1px solid var(--border); border-radius: 40px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text); }
 .bento-visual { background: linear-gradient(135deg, rgba(255,255,255,0.05), transparent); align-items: center; text-align: center; }
 .bento-visual .ring { width: 100px; height: 100px; border-radius: 50%; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 24px; color: var(--text-muted); }
+
+
+/* CURRENTLY */
+.currently-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;
+}
+.curr-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--bento-rad); padding: 32px 28px;
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  display: flex; flex-direction: column; gap: 10px;
+  transition: transform 0.4s var(--ease), background 0.4s var(--ease);
+  min-height: 160px; position: relative; overflow: hidden;
+}
+.curr-card:hover { transform: translateY(-4px); background: var(--surface-hover); }
+.curr-card::before {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.03), transparent);
+  pointer-events: none;
+}
+.curr-icon {
+  font-size: 18px; color: var(--text-muted); line-height: 1;
+}
+.curr-label {
+  font-size: 9px; text-transform: uppercase; letter-spacing: 0.22em;
+  color: var(--text-muted);
+}
+.curr-value {
+  font-family: 'Cormorant Garamond', serif; font-size: 28px;
+  font-weight: 300; line-height: 1.2; color: var(--text); margin-top: auto;
+}
+.curr-sub {
+  font-size: 12px; color: var(--text-muted);
+}
+/* live dot on listening card */
+.curr-live { display: flex; align-items: center; gap: 6px; margin-top: 2px; }
+.curr-live-dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: #10b981; box-shadow: 0 0 6px #10b981;
+  animation: pulse 2s infinite; flex-shrink: 0;
+}
+@media (max-width: 700px) { .currently-grid { grid-template-columns: 1fr; } }
 
 /* CONTACT */
 .contact-wrap { text-align: center; max-width: 600px; margin: 0 auto; padding: 40px 0 80px 0; }
@@ -168,8 +277,25 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 24px 48
 </head>
 <body class="no-scroll">
 
-<div id="enter-screen" onclick="startExperience()">
-  <div class="enter-btn">Enter</div>
+<div id="enter-screen">
+  <canvas id="enter-canvas"></canvas>
+
+  <!-- decorative cross-hair lines -->
+  <div class="enter-line"  style="left:50%"></div>
+  <div class="enter-line-h" style="top:50%"></div>
+
+  <div class="enter-content">
+    <div class="enter-name" id="enter-name">
+      <span>N</span><span>I</span><span>H</span><span>I</span>
+    </div>
+    <div class="enter-sub" id="enter-sub">visuals &amp; management</div>
+    <div class="enter-ring-wrap" id="enter-ring-wrap">
+      <div class="enter-ring-pulse"></div>
+      <div class="enter-ring" onclick="startExperience()" id="enter-ring">
+        <span class="enter-ring-label">Enter</span>
+      </div>
+    </div>
+  </div>
 </div>
 
 <main id="main-content">
@@ -194,6 +320,44 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 24px 48
   <div class="marquee-track" id="marquee-track">
     </div>
 </div>
+
+<section class="section" id="currently">
+  <div class="sec-header gs-fade-up">
+    <div class="sec-sub">Right Now</div>
+    <h2 class="sec-title">Currently</h2>
+  </div>
+  <div class="currently-grid">
+
+    <!-- LISTENING — fed by Last.fm -->
+    <div class="curr-card gs-bento" id="curr-listening">
+      <div class="curr-icon">♪</div>
+      <div class="curr-label">Listening to</div>
+      <div class="curr-value" id="curr-track">—</div>
+      <div class="curr-live" id="curr-live-wrap" style="display:none">
+        <div class="curr-live-dot"></div>
+        <span class="curr-sub" id="curr-artist"></span>
+      </div>
+      <div class="curr-sub" id="curr-artist-static" style="display:none"></div>
+    </div>
+
+    <!-- WATCHING — fed by data/currently.json -->
+    <div class="curr-card gs-bento">
+      <div class="curr-icon">◉</div>
+      <div class="curr-label">Watching</div>
+      <div class="curr-value" id="curr-watching">—</div>
+      <div class="curr-sub" id="curr-watching-sub"></div>
+    </div>
+
+    <!-- WORKING ON — fed by data/currently.json -->
+    <div class="curr-card gs-bento">
+      <div class="curr-icon">✦</div>
+      <div class="curr-label">Working on</div>
+      <div class="curr-value" id="curr-working">—</div>
+      <div class="curr-sub" id="curr-working-sub"></div>
+    </div>
+
+  </div>
+</section>
 
 <section class="section" id="about">
   <div class="sec-header gs-fade-up">
@@ -267,6 +431,90 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 24px 48
 </div>
 
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+// --- 0. ENTER SCREEN SHADER + ANIMATIONS ---
+(function() {
+  const ec = document.getElementById('enter-canvas');
+  const eg = ec.getContext('webgl');
+  if (!eg) return;
+
+  const vs = `attribute vec4 p; void main(){ gl_Position=p; }`;
+  const fs = `
+    precision highp float;
+    uniform vec2 u_res; uniform float u_t;
+    vec3 mod289(vec3 x){return x-floor(x*(1./289.))*289.;}
+    vec2 mod289(vec2 x){return x-floor(x*(1./289.))*289.;}
+    vec3 perm(vec3 x){return mod289(((x*34.)+1.)*x);}
+    float snoise(vec2 v){
+      const vec4 C=vec4(.211324865405187,.366025403784439,-.577350269189626,.024390243902439);
+      vec2 i=floor(v+dot(v,C.yy)),x0=v-i+dot(i,C.xx),i1;
+      i1=(x0.x>x0.y)?vec2(1,0):vec2(0,1);
+      vec4 x12=x0.xyxy+C.xxzz; x12.xy-=i1; i=mod289(i);
+      vec3 p2=perm(perm(i.y+vec3(0,i1.y,1))+i.x+vec3(0,i1.x,1));
+      vec3 m=max(.5-vec3(dot(x0,x0),dot(x12.xy,x12.xy),dot(x12.zw,x12.zw)),0.);
+      m=m*m; m=m*m;
+      vec3 x2=2.*fract(p2*C.www)-1.,h=abs(x2)-.5,ox=floor(x2+.5),a0=x2-ox;
+      m*=1.79284291400159-.85373472095314*(a0*a0+h*h);
+      vec3 g2; g2.x=a0.x*x0.x+h.x*x0.y; g2.yz=a0.yz*x12.xz+h.yz*x12.yw;
+      return 130.*dot(m,g2);
+    }
+    void main(){
+      vec2 st=gl_FragCoord.xy/u_res; st.x*=u_res.x/u_res.y;
+      vec2 q=vec2(snoise(st+.04*u_t), snoise(st+vec2(1.)));
+      vec2 r=vec2(snoise(st+q+vec2(1.7,9.2)+.13*u_t), snoise(st+q+vec2(8.3,2.8)+.11*u_t));
+      float f=snoise(st+r);
+      // slightly brighter than main canvas — more contrast on enter
+      vec3 c1=vec3(.015,.015,.018), c2=vec3(.10,.10,.13), c3=vec3(.20,.22,.28);
+      vec3 col=mix(c1,c2,f+.5); col=mix(col,c3,r.x*r.y+.2);
+      gl_FragColor=vec4(col,1.);
+    }`;
+
+  function mkShader(g,type,src){ const s=g.createShader(type); g.shaderSource(s,src); g.compileShader(s); return s; }
+  const prog=eg.createProgram();
+  eg.attachShader(prog,mkShader(eg,eg.VERTEX_SHADER,vs));
+  eg.attachShader(prog,mkShader(eg,eg.FRAGMENT_SHADER,fs));
+  eg.linkProgram(prog); eg.useProgram(prog);
+  const buf=eg.createBuffer(); eg.bindBuffer(eg.ARRAY_BUFFER,buf);
+  eg.bufferData(eg.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),eg.STATIC_DRAW);
+  const pos=eg.getAttribLocation(prog,'p');
+  eg.enableVertexAttribArray(pos); eg.vertexAttribPointer(pos,2,eg.FLOAT,false,0,0);
+  const uRes=eg.getUniformLocation(prog,'u_res'), uT=eg.getUniformLocation(prog,'u_t');
+  let enterRafId;
+  function renderEnter(t){
+    const pr=window.devicePixelRatio||1;
+    ec.width=ec.offsetWidth*pr; ec.height=ec.offsetHeight*pr;
+    eg.viewport(0,0,ec.width,ec.height);
+    eg.uniform2f(uRes,ec.width,ec.height);
+    eg.uniform1f(uT,t*.001);
+    eg.drawArrays(eg.TRIANGLE_STRIP,0,4);
+    enterRafId=requestAnimationFrame(renderEnter);
+  }
+  enterRafId=requestAnimationFrame(renderEnter);
+  window._stopEnterShader=()=>cancelAnimationFrame(enterRafId);
+})();
+
+// Animate enter screen letters + elements in with GSAP
+window.addEventListener('DOMContentLoaded', () => {
+  const letters = document.querySelectorAll('#enter-name span');
+  const sub     = document.getElementById('enter-sub');
+  const ring    = document.getElementById('enter-ring-wrap');
+  const lineV   = document.querySelector('.enter-line');
+  const lineH   = document.querySelector('.enter-line-h');
+
+  // lines sweep in first
+  gsap.to(lineV, { scaleY: 1, duration: 1.4, ease: 'power3.inOut', delay: 0.1 });
+  gsap.to(lineH, { scaleX: 1, duration: 1.4, ease: 'power3.inOut', delay: 0.1 });
+
+  // letters stagger up
+  gsap.to(letters, {
+    y: 0, opacity: 1, duration: 1.2,
+    stagger: 0.08, ease: 'power4.out', delay: 0.5
+  });
+
+  // sub + ring fade in
+  gsap.to(sub,  { y: 0, opacity: 1, duration: 1,   ease: 'power3.out', delay: 1.0 });
+  gsap.to(ring, {       opacity: 1, duration: 1.2, ease: 'power3.out', delay: 1.3 });
+});
+
 // --- 1. POPULATE MARQUEE ---
 const trackContainer = document.getElementById('marquee-track');
 let imagesHTML = '';
@@ -511,6 +759,7 @@ async function togglePlay() {
 }
 
 function startExperience() {
+  if (window._stopEnterShader) window._stopEnterShader();
   const screen = document.getElementById('enter-screen');
   screen.classList.add('dismissed');
   // Remove from layout after fade so it never blocks clicks
@@ -624,10 +873,8 @@ new MutationObserver(() => {
 // --- 7. TAB TYPEWRITER EFFECT --------------------------------------------------
 const TAB_PHRASES = [
   'nihi ✦',
-  'visuals & mgmt.',
   'i make things.',
-  'after effects.',
-  'fashion. music.',
+  'gmt+1',
 ];
 let tabPhrase = 0, tabChar = 0, tabDir = 1, tabPause = 0;
 const TAB_TYPE_MS  = 80;
@@ -659,6 +906,61 @@ function tickTab() {
   }
 }
 setTimeout(tickTab, 1500);
+
+// --- 8. LAST.FM NOW PLAYING ---------------------------------------------------
+const LFM_USER = 'NoodleDragon1';
+const LFM_KEY  = '52f2a80a9fb33c63407f69a9ceb8e6cf';
+const LFM_URL  = `https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${LFM_USER}&api_key=${LFM_KEY}&limit=1&format=json`;
+
+async function fetchNowPlaying() {
+  try {
+    const res  = await fetch(LFM_URL);
+    if (!res.ok) throw new Error('lfm ' + res.status);
+    const data = await res.json();
+    const track = data.recenttracks?.track?.[0];
+    if (!track) return;
+
+    const title    = track.name;
+    const artist   = track.artist?.['#text'] || '';
+    const isLive   = track['@attr']?.nowplaying === 'true';
+
+    document.getElementById('curr-track').textContent  = title;
+    document.getElementById('curr-artist').textContent = artist;
+    document.getElementById('curr-artist-static').textContent = artist;
+
+    // show live dot if currently scrobbling, plain sub if recent
+    document.getElementById('curr-live-wrap').style.display    = isLive ? 'flex' : 'none';
+    document.getElementById('curr-artist-static').style.display = isLive ? 'none' : 'block';
+  } catch(e) {
+    console.warn('Last.fm fetch failed:', e);
+  }
+}
+
+fetchNowPlaying();
+setInterval(fetchNowPlaying, 30000); // refresh every 30s
+
+// --- 9. CURRENTLY.JSON (watching / working / footer) -------------------------
+async function fetchCurrently() {
+  try {
+    const res  = await fetch('data/currently.json?v=' + Date.now());
+    if (!res.ok) throw new Error('currently.json ' + res.status);
+    const d = await res.json();
+
+    if (d.watching) {
+      document.getElementById('curr-watching').textContent     = d.watching.title || '—';
+      document.getElementById('curr-watching-sub').textContent = d.watching.where || '';
+    }
+    if (d.working) {
+      document.getElementById('curr-working').textContent     = d.working.title || '—';
+      document.getElementById('curr-working-sub').textContent = d.working.sub   || '';
+    }
+  } catch(e) {
+    // silently ignore — static fallback text already in DOM as '—'
+    console.warn('currently.json not found yet:', e);
+  }
+}
+
+fetchCurrently();
 </script>
 </body>
 </html>
