@@ -777,47 +777,58 @@ const VIZ_FS = `
   #define PI  3.14159265359
   #define TAU 6.28318530718
 
-  float sampleF(float a){
-    float t=mod(a,TAU)/TAU;
-    return texture2D(u_audio,vec2(t,0.5)).r;
+  // sample frequency bin at normalised angle 0..1
+  float sampleF(float t) {
+    return texture2D(u_audio, vec2(clamp(t, 0.01, 0.99), 0.5)).r;
   }
-  float glow(float d,float s){ return s/(abs(d)+0.002); }
 
-  void main(){
-    vec2 uv=(gl_FragCoord.xy-u_res*0.5)/min(u_res.x,u_res.y);
-    float angle=atan(uv.y,uv.x);
-    float dist=length(uv);
-    float a=mod(angle+PI,TAU);
-    float f=mix(sampleF(a),sampleF(TAU-a),0.5);
+  // soft line: thickness-based smooth falloff, no division by zero
+  float line(float dist, float radius, float thickness) {
+    return smoothstep(thickness, 0.0, abs(dist - radius));
+  }
 
-    float baseR=0.28;
-    float ringR=baseR+f*0.14;
-    float d=abs(dist-ringR)-0.003;
-    float outerD=abs(dist-(baseR+0.01))-0.001;
+  void main() {
+    vec2 uv = (gl_FragCoord.xy - u_res * 0.5) / min(u_res.x, u_res.y);
+    float dist  = length(uv);
+    float angle = atan(uv.y, uv.x);             // -PI..PI
+    float t     = mod(angle + PI, TAU) / TAU;   // 0..1
 
-    vec3 bgCol  =mix(vec3(0.05,0.05,0.07),vec3(0.96,0.95,0.92),u_theme);
-    vec3 lineCol=mix(vec3(1.),vec3(0.08),u_theme);
-    vec3 accCol =mix(vec3(0.6,0.7,1.),vec3(0.3,0.2,0.5),u_theme);
+    // mirror: average both halves so ring is always symmetric
+    float f = mix(sampleF(t), sampleF(1.0 - t), 0.5);
 
-    float lineBright=clamp(glow(d,0.0018+f*0.004),0.,1.);
-    float halo=glow(outerD,0.0004)*0.3*f;
+    // ── main warped ring ──
+    float baseR = 0.30;
+    float warp  = f * 0.13;
+    float ring  = line(dist, baseR + warp, 0.012);
 
-    float bass=sampleF(0.)*0.7+sampleF(PI)*0.3;
-    float centre=glow(dist-0.04*bass,0.0006)*bass*0.6;
+    // soft outer halo that follows the warp
+    float halo  = line(dist, baseR + warp + 0.018, 0.018) * f * 0.4;
 
-    float midF=sampleF(a+u_time*0.3);
-    float secD=abs(dist-(baseR*0.6+midF*0.06))-0.001;
-    float secL=glow(secD,0.0005)*midF*0.5;
+    // ── inner resting ring (no audio, always visible as guide) ──
+    float guide = line(dist, baseR * 0.65, 0.004) * 0.25;
 
-    vec3 col=bgCol;
-    col+=lineCol*lineBright;
-    col+=accCol*halo;
-    col+=lineCol*centre;
-    col+=mix(vec3(0.5,0.6,1.),vec3(0.4,0.3,0.6),u_theme)*secL;
-    col*=1.-smoothstep(0.35,0.55,dist);
+    // ── centre bass pulse ──
+    float bass  = sampleF(0.02) * 0.6 + sampleF(0.98) * 0.4;
+    float dot   = line(dist, 0.0, 0.035 * bass) * bass * 0.8;
 
-    float alpha=clamp((lineBright+halo+centre+secL+0.015)*30.,0.,1.);
-    gl_FragColor=vec4(col,alpha);
+    // ── compose brightness ──
+    float bright = ring + halo + guide + dot;
+    bright = clamp(bright, 0.0, 1.0);
+
+    // colours — canvas is transparent, only draw the ring itself
+    // dark: white ring.  light: dark ink ring.
+    vec3 ringCol = mix(vec3(1.0, 1.0, 1.0), vec3(0.08, 0.08, 0.10), u_theme);
+    // subtle blue tint on the halo only
+    vec3 haloCol = mix(vec3(0.65, 0.75, 1.0), vec3(0.30, 0.25, 0.55), u_theme);
+
+    vec3 col = ringCol * (ring + guide + dot) + haloCol * halo;
+
+    // vignette so edges don't hard-clip
+    float vig = 1.0 - smoothstep(0.42, 0.52, dist);
+    col  *= vig;
+    float alpha = bright * vig;
+
+    gl_FragColor = vec4(col, alpha);
   }
 `;
 
