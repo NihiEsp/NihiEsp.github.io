@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Nihi | Visuals & Management</title>
+<title>nihi ✦</title>
+<link id="favicon" rel="icon" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
@@ -34,8 +35,9 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 #enter-screen {
   position: fixed; inset: 0; z-index: 9999; background: var(--bg);
   display: flex; align-items: center; justify-content: center;
-  transition: opacity 0.8s var(--ease), visibility 0.8s;
+  transition: opacity 0.8s var(--ease);
 }
+#enter-screen.dismissed { opacity: 0; pointer-events: none; }
 .enter-btn { font-family: 'Cormorant Garamond', serif; font-size: 32px; letter-spacing: 0.2em; color: var(--text); text-transform: uppercase; cursor: pointer; transition: transform 0.3s; }
 .enter-btn:hover { transform: scale(1.05); }
 
@@ -218,7 +220,7 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 24px 48
 
 <section class="section" id="contact">
   <div class="contact-wrap gs-fade-up">
-    <a href="mailto:nihil.us.noodle1@proton.me" class="contact-link">Find me ↗</a>
+    <a href="/cdn-cgi/l/email-protection#345a5d5c5d581a41471a5a5b5b505851057444465b405b5a1a5951" class="contact-link">Find me ↗</a>
     <ul class="socials">
       <li><a href="https://discord.com/users/647532622523793429" target="_blank">Discord</a></li>
       <li><a href="https://x.com/NoodleDragon10" target="_blank">Twitter</a></li>
@@ -264,7 +266,7 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 24px 48
   <audio id="audio-player"></audio>
 </div>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 // --- 1. POPULATE MARQUEE ---
 const trackContainer = document.getElementById('marquee-track');
 let imagesHTML = '';
@@ -509,13 +511,21 @@ async function togglePlay() {
 }
 
 function startExperience() {
-  document.getElementById('enter-screen').style.opacity = '0';
-  document.getElementById('enter-screen').style.visibility = 'hidden';
+  const screen = document.getElementById('enter-screen');
+  screen.classList.add('dismissed');
+  // Remove from layout after fade so it never blocks clicks
+  screen.addEventListener('transitionend', () => { screen.style.display = 'none'; }, { once: true });
   document.body.classList.add('site-loaded');
   document.body.classList.remove('no-scroll');
   initAnimations();
   loadTrack(0);
-  togglePlay();
+  // Autoplay — silently ignored if browser blocks it (user can press play manually)
+  player.play().then(() => {
+    document.getElementById('play-icon').style.display = 'none';
+    document.getElementById('pause-icon').style.display = 'block';
+    trigger.classList.add('is-playing');
+    isPlaying = true;
+  }).catch(() => {});
 }
 
 function nextTrack() { currentTrack = (currentTrack + 1) % TRACKS.length; loadTrack(currentTrack); if(isPlaying) player.play(); }
@@ -524,21 +534,24 @@ function prevTrack() { currentTrack = (currentTrack - 1 + TRACKS.length) % TRACK
 player.addEventListener('ended', nextTrack);
 loadTrack(currentTrack);
 
-// --- 4. GLOBAL VISIT COUNTER (CountAPI) ---
-// CountAPI is a free, no-auth hit counter. Each unique namespace+key is your counter.
-// Change the key suffix (visits-v1) if you ever want to reset.
-const COUNTER_URL = 'https://api.countapi.xyz/hit/nihi-portfolio-site/visits-v1';
+// --- 4. GLOBAL VISIT COUNTER (counterapi.dev) ---
+// counterapi.dev is free, no signup needed. Each namespace+key is a unique counter.
+// Change the namespace string below if you ever want to reset.
+const COUNTER_NS  = 'nihi-folio-2026';
+const COUNTER_KEY = 'visits';
+const COUNTER_URL = `https://api.counterapi.dev/v1/${COUNTER_NS}/${COUNTER_KEY}/up`;
 
 async function initVisitCounter() {
   const el = document.getElementById('stat-visits');
   try {
     const res = await fetch(COUNTER_URL);
-    if (!res.ok) throw new Error('bad response');
+    if (!res.ok) throw new Error('status ' + res.status);
     const data = await res.json();
-    const count = data.value;
+    const count = typeof data.count === 'number' ? data.count : parseInt(data.count, 10);
+    if (isNaN(count)) throw new Error('no count in response');
 
     el.classList.remove('loading');
-    // Animate counting up
+    // Animate counting up from near the final value
     let current = Math.max(0, count - 40);
     const step = () => {
       if (current < count) {
@@ -584,6 +597,68 @@ function updateUptime() {
 updateUptime();
 setInterval(updateUptime, 1000);
 initVisitCounter();
+
+// --- 6. CANVAS FAVICON (✦ symbol, theme-aware) --------------------------------
+function drawFavicon(isDark) {
+  const sz = 64;
+  const fc = document.createElement('canvas');
+  fc.width = fc.height = sz;
+  const ctx = fc.getContext('2d');
+  ctx.fillStyle = isDark ? '#0a0a0a' : '#f7f5f1';
+  ctx.beginPath();
+  ctx.roundRect(0, 0, sz, sz, 14);
+  ctx.fill();
+  ctx.font = 'bold 40px serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = isDark ? '#f5f5f7' : '#1d1d1f';
+  ctx.fillText('✦', sz / 2, sz / 2 + 2);
+  document.getElementById('favicon').href = fc.toDataURL('image/png');
+}
+drawFavicon(document.documentElement.getAttribute('data-theme') === 'dark');
+// Redraw favicon whenever theme attribute changes
+new MutationObserver(() => {
+  drawFavicon(document.documentElement.getAttribute('data-theme') === 'dark');
+}).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+// --- 7. TAB TYPEWRITER EFFECT --------------------------------------------------
+const TAB_PHRASES = [
+  'nihi ✦',
+  'visuals & mgmt.',
+  'i make things.',
+  'after effects.',
+  'fashion. music.',
+];
+let tabPhrase = 0, tabChar = 0, tabDir = 1, tabPause = 0;
+const TAB_TYPE_MS  = 80;
+const TAB_ERASE_MS = 44;
+const TAB_HOLD_MS  = 2400;
+const CURSOR = '▌';
+
+function tickTab() {
+  const phrase = TAB_PHRASES[tabPhrase];
+  if (tabDir === 1) {
+    tabChar = Math.min(tabChar + 1, phrase.length);
+    document.title = phrase.slice(0, tabChar) + (tabChar < phrase.length ? CURSOR : '');
+    if (tabChar >= phrase.length) {
+      tabDir = -1;
+      setTimeout(tickTab, TAB_HOLD_MS);
+    } else {
+      setTimeout(tickTab, TAB_TYPE_MS);
+    }
+  } else {
+    tabChar = Math.max(tabChar - 1, 0);
+    document.title = phrase.slice(0, tabChar) + (tabChar > 0 ? CURSOR : '');
+    if (tabChar <= 0) {
+      tabPhrase = (tabPhrase + 1) % TAB_PHRASES.length;
+      tabDir = 1;
+      setTimeout(tickTab, 380);
+    } else {
+      setTimeout(tickTab, TAB_ERASE_MS);
+    }
+  }
+}
+setTimeout(tickTab, 1500);
 </script>
 </body>
 </html>
