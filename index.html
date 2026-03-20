@@ -761,131 +761,143 @@ function loadTrack(index) {
   player.load();
 }
 
-// --- AUDIO VISUALIZER ---
+// --- WEBGL CIRCULAR WAVEFORM VISUALIZER ---
 let audioCtx, analyser, sourceNode, vizRaf;
 let vizReady = false;
+let vizGl = null, vizProg = null, vizTex = null;
+let uTimeLoc, uAudioLoc, uThemeLoc2, uResLoc2;
 
-function initVisualizer() {
-  if (vizReady) return;
-  audioCtx  = new (window.AudioContext || window.webkitAudioContext)();
-  analyser  = audioCtx.createAnalyser();
-  analyser.fftSize = 64;
-  analyser.smoothingTimeConstant = 0.8;
-  sourceNode = audioCtx.createMediaElementSource(player);
+const VIZ_VS = `attribute vec2 a_pos; void main(){gl_Position=vec4(a_pos,0.,1.);}`;
+const VIZ_FS = `
+  precision highp float;
+  uniform vec2  u_res;
+  uniform float u_time;
+  uniform float u_theme;
+  uniform sampler2D u_audio;
+  #define PI  3.14159265359
+  #define TAU 6.28318530718
+
+  float sampleF(float a){
+    float t=mod(a,TAU)/TAU;
+    return texture2D(u_audio,vec2(t,0.5)).r;
+  }
+  float glow(float d,float s){ return s/(abs(d)+0.002); }
+
+  void main(){
+    vec2 uv=(gl_FragCoord.xy-u_res*0.5)/min(u_res.x,u_res.y);
+    float angle=atan(uv.y,uv.x);
+    float dist=length(uv);
+    float a=mod(angle+PI,TAU);
+    float f=mix(sampleF(a),sampleF(TAU-a),0.5);
+
+    float baseR=0.28;
+    float ringR=baseR+f*0.14;
+    float d=abs(dist-ringR)-0.003;
+    float outerD=abs(dist-(baseR+0.01))-0.001;
+
+    vec3 bgCol  =mix(vec3(0.05,0.05,0.07),vec3(0.96,0.95,0.92),u_theme);
+    vec3 lineCol=mix(vec3(1.),vec3(0.08),u_theme);
+    vec3 accCol =mix(vec3(0.6,0.7,1.),vec3(0.3,0.2,0.5),u_theme);
+
+    float lineBright=clamp(glow(d,0.0018+f*0.004),0.,1.);
+    float halo=glow(outerD,0.0004)*0.3*f;
+
+    float bass=sampleF(0.)*0.7+sampleF(PI)*0.3;
+    float centre=glow(dist-0.04*bass,0.0006)*bass*0.6;
+
+    float midF=sampleF(a+u_time*0.3);
+    float secD=abs(dist-(baseR*0.6+midF*0.06))-0.001;
+    float secL=glow(secD,0.0005)*midF*0.5;
+
+    vec3 col=bgCol;
+    col+=lineCol*lineBright;
+    col+=accCol*halo;
+    col+=lineCol*centre;
+    col+=mix(vec3(0.5,0.6,1.),vec3(0.4,0.3,0.6),u_theme)*secL;
+    col*=1.-smoothstep(0.35,0.55,dist);
+
+    float alpha=clamp((lineBright+halo+centre+secL+0.015)*30.,0.,1.);
+    gl_FragColor=vec4(col,alpha);
+  }
+`;
+
+function initVizGL(){
+  const canvas=document.getElementById('viz-canvas');
+  vizGl=canvas.getContext('webgl',{premultipliedAlpha:false,alpha:true});
+  if(!vizGl)return false;
+  const gl=vizGl;
+  function mkSh(type,src){
+    const s=gl.createShader(type);
+    gl.shaderSource(s,src);gl.compileShader(s);
+    if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)){console.error(gl.getShaderInfoLog(s));return null;}
+    return s;
+  }
+  vizProg=gl.createProgram();
+  gl.attachShader(vizProg,mkSh(gl.VERTEX_SHADER,VIZ_VS));
+  gl.attachShader(vizProg,mkSh(gl.FRAGMENT_SHADER,VIZ_FS));
+  gl.linkProgram(vizProg);gl.useProgram(vizProg);
+  const buf=gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER,buf);
+  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
+  const loc=gl.getAttribLocation(vizProg,'a_pos');
+  gl.enableVertexAttribArray(loc);
+  gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
+  vizTex=gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D,vizTex);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+  uTimeLoc=gl.getUniformLocation(vizProg,'u_time');
+  uAudioLoc=gl.getUniformLocation(vizProg,'u_audio');
+  uThemeLoc2=gl.getUniformLocation(vizProg,'u_theme');
+  uResLoc2=gl.getUniformLocation(vizProg,'u_res');
+  gl.enable(gl.BLEND);
+  gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
+  return true;
+}
+
+function initVisualizer(){
+  if(vizReady)return;
+  audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+  analyser=audioCtx.createAnalyser();
+  analyser.fftSize=256;
+  analyser.smoothingTimeConstant=0.85;
+  sourceNode=audioCtx.createMediaElementSource(player);
   sourceNode.connect(analyser);
   analyser.connect(audioCtx.destination);
-  vizReady = true;
+  vizReady=true;
+  initVizGL();
 }
 
-function drawViz() {
-  const canvas = document.getElementById('viz-canvas');
-  if (!canvas || !analyser) return;
-
-  // Switch to time-domain for the waveform
-  analyser.fftSize = 256;
-  const bufLen = analyser.fftSize;
-  const data   = new Uint8Array(bufLen);
-
-  const ctx = canvas.getContext('2d');
-
-  function resize() {
-    const dpr = window.devicePixelRatio || 1;
-    canvas.width  = canvas.offsetWidth  * dpr;
-    canvas.height = canvas.offsetHeight * dpr;
+function drawViz(){
+  const canvas=document.getElementById('viz-canvas');
+  if(!canvas||!analyser||!vizGl)return;
+  const gl=vizGl;
+  const dpr=window.devicePixelRatio||1;
+  const W=canvas.offsetWidth*dpr, H=canvas.offsetHeight*dpr;
+  if(canvas.width!==W||canvas.height!==H){canvas.width=W;canvas.height=H;}
+  const freqData=new Uint8Array(128);
+  function frame(t){
+    vizRaf=requestAnimationFrame(frame);
+    analyser.getByteFrequencyData(freqData);
+    gl.viewport(0,0,canvas.width,canvas.height);
+    gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.bindTexture(gl.TEXTURE_2D,vizTex);
+    gl.texImage2D(gl.TEXTURE_2D,0,gl.LUMINANCE,128,1,0,gl.LUMINANCE,gl.UNSIGNED_BYTE,freqData);
+    gl.useProgram(vizProg);
+    gl.uniform2f(uResLoc2,canvas.width,canvas.height);
+    gl.uniform1f(uTimeLoc,t*0.001);
+    gl.uniform1f(uThemeLoc2,shaderTheme);
+    gl.uniform1i(uAudioLoc,0);
+    gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
   }
-  resize();
-
-  function frame() {
-    vizRaf = requestAnimationFrame(frame);
-    resize();
-
-    const W = canvas.width, H = canvas.height;
-    const cx = W / 2, cy = H / 2;
-    const dpr = window.devicePixelRatio || 1;
-    const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
-
-    analyser.getByteTimeDomainData(data);
-
-    ctx.clearRect(0, 0, W, H);
-
-    // --- outer glow ring (static) ---
-    const baseR = Math.min(W, H) * 0.30;
-    ctx.beginPath();
-    ctx.arc(cx, cy, baseR, 0, Math.PI * 2);
-    ctx.strokeStyle = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
-    ctx.lineWidth = 1 * dpr;
-    ctx.stroke();
-
-    // --- compute average amplitude for overall pulse ---
-    let sum = 0;
-    for (let i = 0; i < bufLen; i++) sum += Math.abs(data[i] - 128);
-    const avg = sum / bufLen;
-    const pulse = avg / 128; // 0..1
-
-    // --- draw waveform ring ---
-    // plot each sample around a circle, displaced radially by its amplitude
-    const displacement = Math.min(W, H) * 0.14; // max outward push
-    const lineW = 1.5 * dpr;
-
-    // draw twice — mirrored — for symmetry
-    for (let mirror = 0; mirror < 2; mirror++) {
-      ctx.beginPath();
-      for (let i = 0; i < bufLen; i++) {
-        const t = mirror === 0
-          ? i / bufLen
-          : 1 - i / bufLen;
-        const angle  = t * Math.PI * 2 - Math.PI / 2;
-        const sample = (data[i] - 128) / 128; // -1..1
-        const r      = baseR + sample * displacement;
-        const x      = cx + Math.cos(angle) * r;
-        const y      = cy + Math.sin(angle) * r;
-        i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
-      }
-      ctx.closePath();
-
-      // gradient stroke — brighter at top, fades at bottom
-      const grad = ctx.createLinearGradient(cx, cy - baseR - displacement, cx, cy + baseR + displacement);
-      if (isDark) {
-        grad.addColorStop(0,   'rgba(255,255,255,0.9)');
-        grad.addColorStop(0.5, 'rgba(255,255,255,0.4)');
-        grad.addColorStop(1,   'rgba(255,255,255,0.1)');
-      } else {
-        grad.addColorStop(0,   'rgba(0,0,0,0.8)');
-        grad.addColorStop(0.5, 'rgba(0,0,0,0.3)');
-        grad.addColorStop(1,   'rgba(0,0,0,0.05)');
-      }
-      ctx.strokeStyle = grad;
-      ctx.lineWidth   = lineW;
-      ctx.lineJoin    = 'round';
-      ctx.stroke();
-    }
-
-    // --- centre dot that pulses with bass ---
-    const dotR = (4 + pulse * 10) * dpr;
-    ctx.beginPath();
-    ctx.arc(cx, cy, dotR, 0, Math.PI * 2);
-    ctx.fillStyle = isDark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.5)';
-    ctx.fill();
-
-    // --- idle state: draw a perfect still ring when silent ---
-    if (avg < 1.5) {
-      ctx.beginPath();
-      ctx.arc(cx, cy, baseR, 0, Math.PI * 2);
-      ctx.strokeStyle = isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)';
-      ctx.lineWidth   = lineW;
-      ctx.stroke();
-    }
-  }
-  frame();
+  frame(0);
 }
 
-function stopViz() {
-  if (vizRaf) cancelAnimationFrame(vizRaf);
-  const canvas = document.getElementById('viz-canvas');
-  if (canvas) {
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-  }
+function stopViz(){
+  if(vizRaf)cancelAnimationFrame(vizRaf);
+  if(vizGl){vizGl.clearColor(0,0,0,0);vizGl.clear(vizGl.COLOR_BUFFER_BIT);}
 }
 
 async function togglePlay() {
