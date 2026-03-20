@@ -447,7 +447,7 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 24px 48
   <audio id="audio-player"></audio>
 </div>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script>
 // --- 0. ENTER SCREEN SHADER + ANIMATIONS ---
 (function() {
   const ec = document.getElementById('enter-canvas');
@@ -1112,4 +1112,17 @@ async function fetchCurrently() {
     }
   } catch(e) {
     // silently ignore — static fallback text already in DOM as '—'
-    console.warn('currently.json not found
+    console.warn('currently.json not found yet:', e);
+  }
+}
+
+fetchCurrently();
+
+// Footer year
+document.getElementById('footer-year').textContent = new Date().getFullYear();
+
+// Keep time phrase fresh
+setInterval(() => { TAB_PHRASES[2] = 'gmt+1'; }, 60000);
+</script>
+</body>
+</html>
