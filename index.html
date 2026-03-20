@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>nihi ✦</title>
-<link id="favicon" rel="icon" type="image/png" href="data:,">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='82' font-size='85' text-anchor='middle' x='50'>✦</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
@@ -384,7 +384,7 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 24px 48
 
 <section class="section" id="contact">
   <div class="contact-wrap gs-fade-up">
-    <a href="/cdn-cgi/l/email-protection#345a5d5c5d581a41471a5a5b5b505851057444465b405b5a1a5951" class="contact-link">Find me ↗</a>
+    <a href="mailto:nihil.us.noodle1@proton.me" class="contact-link">Find me ↗</a>
     <ul class="socials">
       <li><a href="https://discord.com/users/647532622523793429" target="_blank">Discord</a></li>
       <li><a href="https://x.com/NoodleDragon10" target="_blank">Twitter</a></li>
@@ -436,7 +436,7 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 24px 48
   <audio id="audio-player"></audio>
 </div>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script>
 // --- 0. ENTER SCREEN SHADER + ANIMATIONS ---
 (function() {
   const ec = document.getElementById('enter-canvas');
@@ -529,7 +529,7 @@ window.addEventListener('DOMContentLoaded', () => {
 const trackContainer = document.getElementById('marquee-track');
 let imagesHTML = '';
 for (let i = 1; i <= 12; i++) {
-  imagesHTML += `<img src="pictures/picture${i}.jpeg" alt="visual ${i}" class="marquee-img" onerror="this.src='https://via.placeholder.com/400x300/111/333?text=Picture+${i}'">`;
+  imagesHTML += `<img src="pictures/picture${i}.jpeg" alt="visual ${i}" class="marquee-img" onerror="this.style.display='none'">`;
 }
 trackContainer.innerHTML = imagesHTML + imagesHTML;
 
@@ -868,28 +868,7 @@ updateUptime();
 setInterval(updateUptime, 1000);
 initVisitCounter();
 
-// --- 6. CANVAS FAVICON (✦ symbol, theme-aware) --------------------------------
-function drawFavicon(isDark) {
-  const sz = 64;
-  const fc = document.createElement('canvas');
-  fc.width = fc.height = sz;
-  const ctx = fc.getContext('2d');
-  // filled square bg
-  ctx.fillStyle = isDark ? '#0a0a0a' : '#f7f5f1';
-  ctx.fillRect(0, 0, sz, sz);
-  // star glyph
-  ctx.font = '40px serif';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillStyle = isDark ? '#f5f5f7' : '#1d1d1f';
-  ctx.fillText('✦', sz / 2, sz / 2 + 2);
-  document.getElementById('favicon').href = fc.toDataURL('image/png');
-}
-drawFavicon(document.documentElement.getAttribute('data-theme') === 'dark');
-// Redraw favicon whenever theme attribute changes
-new MutationObserver(() => {
-  drawFavicon(document.documentElement.getAttribute('data-theme') === 'dark');
-}).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+// --- 6. FAVICON: handled via inline SVG in <head> ---
 
 // --- 7. TAB TYPEWRITER EFFECT --------------------------------------------------
 const TAB_PHRASES = [
