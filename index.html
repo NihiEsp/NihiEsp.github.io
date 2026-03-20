@@ -408,6 +408,12 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 24px 48
 
   </div>
 </section>
+  <!-- FOOTER -->
+  <footer style="text-align:center; padding: 32px 48px 48px; border-top: 1px solid var(--border); margin-top: 40px;">
+    <p style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.2em; color: var(--text-muted);">
+      &copy; <span id="footer-year"></span> nihi &nbsp;·&nbsp; all rights reserved
+    </p>
+  </footer>
 </main>
 
 <button class="theme-toggle gs-reveal" onclick="toggleTheme()"><svg class="sun-icon" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg><svg class="moon-icon" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
@@ -479,10 +485,14 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 24px 48
   eg.enableVertexAttribArray(pos); eg.vertexAttribPointer(pos,2,eg.FLOAT,false,0,0);
   const uRes=eg.getUniformLocation(prog,'u_res'), uT=eg.getUniformLocation(prog,'u_t');
   let enterRafId;
-  function renderEnter(t){
+  function resizeEnter(){
     const pr=window.devicePixelRatio||1;
     ec.width=ec.offsetWidth*pr; ec.height=ec.offsetHeight*pr;
     eg.viewport(0,0,ec.width,ec.height);
+  }
+  resizeEnter();
+  window.addEventListener('resize', resizeEnter);
+  function renderEnter(t){
     eg.uniform2f(uRes,ec.width,ec.height);
     eg.uniform1f(uT,t*.001);
     eg.drawArrays(eg.TRIANGLE_STRIP,0,4);
@@ -675,20 +685,20 @@ if (gl) {
   const uTime = gl.getUniformLocation(shaderProgram, "u_time");
   uTheme = gl.getUniformLocation(shaderProgram, "u_theme");
 
-  function render(time) {
+  function resizeCanvas() {
     const pixelRatio = window.devicePixelRatio || 1;
     canvas.width = window.innerWidth * pixelRatio;
     canvas.height = window.innerHeight * pixelRatio;
-
     gl.viewport(0, 0, canvas.width, canvas.height);
+  }
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+
+  function render(time) {
     gl.uniform2f(uResolution, canvas.width, canvas.height);
     gl.uniform1f(uTime, time * 0.001);
-
-    // Smoothly interpolate shaderTheme toward shaderThemeTarget
-    // ~0.05 per frame ≈ ~750ms transition at 60fps, matching the CSS transition
     shaderTheme += (shaderThemeTarget - shaderTheme) * 0.05;
     gl.uniform1f(uTheme, shaderTheme);
-
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     requestAnimationFrame(render);
   }
@@ -864,11 +874,11 @@ function drawFavicon(isDark) {
   const fc = document.createElement('canvas');
   fc.width = fc.height = sz;
   const ctx = fc.getContext('2d');
+  // filled square bg
   ctx.fillStyle = isDark ? '#0a0a0a' : '#f7f5f1';
-  ctx.beginPath();
-  ctx.roundRect(0, 0, sz, sz, 14);
-  ctx.fill();
-  ctx.font = 'bold 40px serif';
+  ctx.fillRect(0, 0, sz, sz);
+  // star glyph
+  ctx.font = '40px serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillStyle = isDark ? '#f5f5f7' : '#1d1d1f';
@@ -972,6 +982,9 @@ async function fetchCurrently() {
 }
 
 fetchCurrently();
+
+// Footer year
+document.getElementById('footer-year').textContent = new Date().getFullYear();
 </script>
 </body>
 </html>
