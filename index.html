@@ -7,6 +7,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
 <style>
 :root {
   --bg: #050505; --text: #f5f5f7; --text-muted: #86868b;
@@ -33,20 +36,16 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   display: flex; align-items: center; justify-content: center;
   transition: opacity 0.8s var(--ease), visibility 0.8s;
 }
-.enter-btn { font-family: 'Cormorant Garamond', serif; font-size: 32px; letter-spacing: 0.2em; color: var(--text); text-transform: uppercase; cursor: pointer; }
+.enter-btn { font-family: 'Cormorant Garamond', serif; font-size: 32px; letter-spacing: 0.2em; color: var(--text); text-transform: uppercase; cursor: pointer; transition: transform 0.3s; }
+.enter-btn:hover { transform: scale(1.05); }
 
 /* MAIN CONTENT HIDDEN INITIALLY */
 #main-content { opacity: 0; transition: opacity 1s var(--ease); }
 body.site-loaded #main-content { opacity: 1; }
 body.no-scroll { overflow: hidden; }
 
-/* AMBIENT BACKGROUND */
-.ambient-bg { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
-.orb { position: absolute; border-radius: 50%; filter: blur(120px); opacity: 0.6; transition: background 0.6s ease; }
-.orb-1 { width: 60vw; height: 60vw; top: -20%; left: -10%; background: radial-gradient(circle, var(--glow), transparent 70%); animation: float1 20s infinite alternate ease-in-out; }
-.orb-2 { width: 50vw; height: 50vw; bottom: -10%; right: -10%; background: radial-gradient(circle, var(--glow), transparent 70%); animation: float2 25s infinite alternate ease-in-out; }
-@keyframes float1 { 0% { transform: translate(0, 0); } 100% { transform: translate(10%, 10%); } }
-@keyframes float2 { 0% { transform: translate(0, 0); } 100% { transform: translate(-10%, -15%); } }
+/* SHADER BACKGROUND */
+#shader-canvas { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; opacity: 0.8; transition: opacity 0.6s ease; }
 
 /* NAV */
 nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 24px 48px; display: flex; justify-content: space-between; align-items: center; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); background: linear-gradient(to bottom, var(--bg) 0%, transparent 100%); }
@@ -56,32 +55,43 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 24px 48
 .nav-links a:hover { color: var(--text); }
 
 /* HERO */
-.hero { min-height: 100svh; display: flex; flex-direction: column; justify-content: center; padding: 0 48px; position: relative; }
+.hero { min-height: 80svh; display: flex; flex-direction: column; justify-content: center; padding: 0 48px; position: relative; margin-top: 5vh; }
 .hero-content { max-width: 1000px; margin: 0 auto; text-align: center; width: 100%; }
-.hero-title { font-family: 'Cormorant Garamond', serif; font-size: clamp(80px, 15vw, 220px); font-weight: 300; line-height: 0.9; letter-spacing: -0.02em; opacity: 0; transform: translateY(30px); animation: fadeUp 1s 0.2s var(--ease) forwards; }
-.hero-tag { font-size: clamp(14px, 2vw, 18px); color: var(--text-muted); letter-spacing: 0.2em; text-transform: uppercase; margin-top: 24px; font-weight: 300; opacity: 0; transform: translateY(20px); animation: fadeUp 1s 0.4s var(--ease) forwards; }
-@keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+.hero-title { font-family: 'Cormorant Garamond', serif; font-size: clamp(80px, 15vw, 220px); font-weight: 300; line-height: 0.9; letter-spacing: -0.02em; }
+.hero-tag { font-size: clamp(14px, 2vw, 18px); color: var(--text-muted); letter-spacing: 0.2em; text-transform: uppercase; margin-top: 16px; font-weight: 300; }
+
+/* MARQUEE SECTION */
+.marquee-wrapper { width: 100vw; overflow: hidden; padding: 24px 0; background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); position: relative; display: flex; }
+.marquee-track { display: flex; gap: 16px; width: max-content; animation: scroll-marquee 30s linear infinite; padding-left: 16px; }
+.marquee-track:hover { animation-play-state: paused; }
+.marquee-img { height: 260px; width: auto; object-fit: cover; border-radius: 12px; filter: grayscale(80%) contrast(1.2); transition: filter 0.4s; }
+.marquee-img:hover { filter: grayscale(0%) contrast(1); }
+
+@keyframes scroll-marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(calc(-50% - 8px)); }
+}
 
 /* BENTO SECTION */
-.section { padding: 120px 48px; max-width: 1400px; margin: 0 auto; }
-.sec-header { margin-bottom: 64px; text-align: center; }
+.section { padding: 80px 48px; max-width: 1400px; margin: 0 auto; }
+.sec-header { margin-bottom: 40px; text-align: center; }
 .sec-title { font-family: 'Cormorant Garamond', serif; font-size: 48px; font-weight: 300; }
-.sec-sub { font-size: 12px; text-transform: uppercase; letter-spacing: 0.2em; color: var(--text-muted); margin-bottom: 12px; }
-.bento { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; grid-auto-rows: 280px; }
-.bento-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--bento-rad); padding: 40px; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); display: flex; flex-direction: column; justify-content: center; transition: transform 0.4s var(--ease), background 0.4s var(--ease); overflow: hidden; position: relative; }
+.sec-sub { font-size: 12px; text-transform: uppercase; letter-spacing: 0.2em; color: var(--text-muted); margin-bottom: 8px; }
+.bento { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; grid-auto-rows: 260px; }
+.bento-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--bento-rad); padding: 32px; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); display: flex; flex-direction: column; justify-content: center; transition: transform 0.4s var(--ease), background 0.4s var(--ease); overflow: hidden; position: relative; }
 .bento-card:hover { transform: translateY(-4px); background: var(--surface-hover); }
 .card-span-2 { grid-column: span 2; }
 .card-span-4 { grid-column: span 4; }
-.bento-h { font-family: 'Cormorant Garamond', serif; font-size: 42px; font-weight: 300; line-height: 1.1; margin-bottom: 16px; }
+.bento-h { font-family: 'Cormorant Garamond', serif; font-size: 42px; font-weight: 300; line-height: 1.1; margin-bottom: 12px; }
 .bento-p { font-size: 15px; color: var(--text-muted); line-height: 1.6; }
 .bento-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; }
 .b-tag { padding: 8px 16px; border: 1px solid var(--border); border-radius: 40px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text); }
 .bento-visual { background: linear-gradient(135deg, rgba(255,255,255,0.05), transparent); align-items: center; text-align: center; }
-.bento-visual .ring { width: 120px; height: 120px; border-radius: 50%; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 24px; color: var(--text-muted); }
+.bento-visual .ring { width: 100px; height: 100px; border-radius: 50%; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 24px; color: var(--text-muted); }
 
 /* CONTACT */
-.contact-wrap { text-align: center; max-width: 600px; margin: 0 auto; padding: 60px 0; }
-.contact-link { display: inline-block; font-size: clamp(24px, 4vw, 42px); font-family: 'Cormorant Garamond', serif; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 48px; transition: border-color 0.3s; }
+.contact-wrap { text-align: center; max-width: 600px; margin: 0 auto; padding: 40px 0 80px 0; }
+.contact-link { display: inline-block; font-size: clamp(24px, 4vw, 42px); font-family: 'Cormorant Garamond', serif; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 40px; transition: border-color 0.3s; }
 .contact-link:hover { border-color: var(--text); }
 .socials { display: flex; justify-content: center; gap: 32px; list-style: none; flex-wrap: wrap; }
 .socials a { font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); transition: color 0.3s; }
@@ -96,30 +106,61 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 24px 48
 .music-panel { position: fixed; top: 0; right: -400px; bottom: 0; width: 380px; z-index: 200; background: var(--glass); backdrop-filter: blur(30px); border-left: 1px solid var(--border); padding: 48px 32px; display: flex; flex-direction: column; transition: right 0.6s var(--ease); }
 .music-panel.open { right: 0; }
 .panel-close { position: absolute; top: 24px; right: 24px; font-size: 24px; color: var(--text-muted); }
-
 .player-art-wrap { width: 100%; aspect-ratio: 1; border-radius: 20px; background: var(--surface); margin-bottom: 24px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); overflow: hidden; background-size: cover; background-position: center; transition: all 0.5s ease; }
 .player-info { text-align: center; margin-bottom: 24px; }
 .song-title { font-family: 'Cormorant Garamond', serif; font-size: 24px; font-weight: 600; }
 .song-artist { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
-
-/* VOLUME SLIDER */
 .volume-container { display: flex; align-items: center; gap: 12px; margin-bottom: 32px; padding: 0 10px; }
 .volume-slider { width: 100%; height: 4px; -webkit-appearance: none; background: var(--border); border-radius: 2px; outline: none; }
 .volume-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; background: var(--text); border-radius: 50%; cursor: pointer; }
-
 .controls { display: flex; align-items: center; justify-content: center; gap: 24px; }
 .ctrl-btn { color: var(--text); padding: 12px; border-radius: 50%; display: flex; }
 .play-btn { background: var(--text); color: var(--bg); padding: 16px; border-radius: 50%; }
 
-/* UTILS */
-.reveal { opacity: 0; transform: translateY(40px); transition: all 1s var(--ease); }
-.reveal.vis { opacity: 1; transform: none; }
 .theme-toggle { position: fixed; bottom: 32px; left: 48px; z-index: 100; width: 48px; height: 48px; border-radius: 50%; background: var(--surface); border: 1px solid var(--border); color: var(--text); display: flex; align-items: center; justify-content: center; transition: 0.3s; }
 .theme-toggle:hover { transform: scale(1.1); }
 .moon-icon { display: none; }
 [data-theme="light"] .sun-icon { display: none; }
 [data-theme="light"] .moon-icon { display: block; }
 
+/* SITE STATS */
+.site-stats {
+  display: flex; justify-content: center; align-items: center;
+  gap: 0; margin-top: 48px; border: 1px solid var(--border);
+  border-radius: 40px; overflow: hidden; width: fit-content;
+  margin-left: auto; margin-right: auto;
+}
+.stat-item {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 14px 32px; gap: 4px; position: relative;
+}
+.stat-item + .stat-item::before {
+  content: ''; position: absolute; left: 0; top: 20%; height: 60%;
+  width: 1px; background: var(--border);
+}
+.stat-label {
+  font-size: 9px; text-transform: uppercase; letter-spacing: 0.18em;
+  color: var(--text-muted); white-space: nowrap;
+}
+.stat-value {
+  font-family: 'Cormorant Garamond', serif; font-size: 22px;
+  font-weight: 300; letter-spacing: 0.05em; color: var(--text);
+  min-width: 4ch; text-align: center; transition: color 0.3s;
+}
+.stat-value.loading { color: var(--text-muted); font-size: 14px; letter-spacing: 0.2em; }
+
+/* live pulse dot next to uptime */
+.stat-live { display: flex; align-items: center; gap: 6px; }
+.stat-live-dot {
+  width: 5px; height: 5px; border-radius: 50%; background: #10b981;
+  box-shadow: 0 0 6px #10b981; animation: pulse 2s infinite;
+}
+
+@media (max-width: 600px) {
+  .site-stats { flex-direction: column; border-radius: 20px; width: 100%; }
+  .stat-item + .stat-item::before { top: 0; left: 20%; width: 60%; height: 1px; }
+  .stat-item { padding: 14px 24px; width: 100%; }
+}
 @media (max-width: 900px) { .bento { grid-template-columns: 1fr; } .card-span-2, .card-span-4 { grid-column: span 1; } .music-panel { width: 100%; right: -100%; } }
 </style>
 </head>
@@ -130,14 +171,11 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 24px 48
 </div>
 
 <main id="main-content">
-<div class="ambient-bg">
-  <div class="orb orb-1"></div>
-  <div class="orb orb-2"></div>
-</div>
+<canvas id="shader-canvas"></canvas>
 
 <nav>
-  <div class="nav-logo">Nihi</div>
-  <ul class="nav-links">
+  <div class="nav-logo gs-reveal">Nihi</div>
+  <ul class="nav-links gs-reveal">
     <li><a href="#about">About</a></li>
     <li><a href="#contact">Contact</a></li>
   </ul>
@@ -150,23 +188,28 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 24px 48
   </div>
 </section>
 
+<div class="marquee-wrapper gs-fade">
+  <div class="marquee-track" id="marquee-track">
+    </div>
+</div>
+
 <section class="section" id="about">
-  <div class="sec-header reveal">
+  <div class="sec-header gs-fade-up">
     <div class="sec-sub">About Me</div>
     <h2 class="sec-title">Visuals & Management</h2>
   </div>
-  <div class="bento reveal">
-    <div class="bento-card card-span-2">
+  <div class="bento">
+    <div class="bento-card card-span-2 gs-bento">
       <h3 class="bento-h">I like random stuff.</h3>
       <p class="bento-p">Currently learning visual design and After Effects. Still working on something worth showing.</p>
     </div>
-    <div class="bento-card card-span-2">
+    <div class="bento-card card-span-2 gs-bento">
       <h3 class="bento-h">Interests</h3>
       <div class="bento-tags">
         <span class="b-tag">Fashion</span><span class="b-tag">Music</span><span class="b-tag">Art</span><span class="b-tag">After Effects</span><span class="b-tag">Design</span>
       </div>
     </div>
-    <div class="bento-card card-span-4 bento-visual">
+    <div class="bento-card card-span-4 bento-visual gs-bento">
       <div class="ring">✦</div>
       <p style="margin-top: 24px; color: var(--text-muted); font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase;">Nothing yet, Sorry!</p>
     </div>
@@ -174,7 +217,7 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 24px 48
 </section>
 
 <section class="section" id="contact">
-  <div class="contact-wrap reveal">
+  <div class="contact-wrap gs-fade-up">
     <a href="mailto:nihil.us.noodle1@proton.me" class="contact-link">Find me ↗</a>
     <ul class="socials">
       <li><a href="https://discord.com/users/647532622523793429" target="_blank">Discord</a></li>
@@ -182,32 +225,37 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 24px 48
       <li><a href="https://guns.lol/nihi" target="_blank">Guns.lol</a></li>
       <li><a href="https://www.roblox.com/users/570659566/profile" target="_blank">Roblox</a></li>
     </ul>
+
+    <div class="site-stats" id="site-stats">
+      <div class="stat-item">
+        <span class="stat-label">Visitors</span>
+        <span class="stat-value loading" id="stat-visits">…</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Live since</span>
+        <div class="stat-live">
+          <div class="stat-live-dot"></div>
+          <span class="stat-value" id="stat-uptime">—</span>
+        </div>
+      </div>
+    </div>
+
   </div>
 </section>
 </main>
 
-<button class="theme-toggle" onclick="toggleTheme()"><svg class="sun-icon" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg><svg class="moon-icon" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
-
-<button class="music-trigger" id="m-trigger" onclick="togglePlayer()"><div class="dot"></div> Music</button>
+<button class="theme-toggle gs-reveal" onclick="toggleTheme()"><svg class="sun-icon" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg><svg class="moon-icon" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+<button class="music-trigger gs-reveal" id="m-trigger" onclick="togglePlayer()"><div class="dot"></div> Music</button>
 
 <div class="music-panel" id="m-panel">
   <button class="panel-close" onclick="togglePlayer()">×</button>
   <div style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.2em; color: var(--text-muted); margin-bottom: 24px;">Now Playing</div>
-  
-  <div class="player-art-wrap" id="m-art">
-    <span id="art-placeholder" style="font-family: 'Cormorant Garamond', serif; font-size: 64px; color: var(--text-muted);">♫</span>
-  </div>
-  
-  <div class="player-info">
-    <div class="song-title" id="s-title">Track Title</div>
-    <div class="song-artist" id="s-artist">Artist Name</div>
-  </div>
-
+  <div class="player-art-wrap" id="m-art"><span id="art-placeholder" style="font-family: 'Cormorant Garamond', serif; font-size: 64px; color: var(--text-muted);">♫</span></div>
+  <div class="player-info"><div class="song-title" id="s-title">Track Title</div><div class="song-artist" id="s-artist">Artist Name</div></div>
   <div class="volume-container">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5zM19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
     <input type="range" class="volume-slider" id="v-slider" min="0" max="1" step="0.01" value="0.3">
   </div>
-  
   <div class="controls">
     <button class="ctrl-btn" onclick="prevTrack()"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/></svg></button>
     <button class="ctrl-btn play-btn" onclick="togglePlay()"><svg id="play-icon" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg><svg id="pause-icon" style="display:none;" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg></button>
@@ -217,10 +265,194 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 24px 48
 </div>
 
 <script>
-const observer = new IntersectionObserver((entries) => { entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('vis'); }); }, { threshold: 0.1 });
-document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+// --- 1. POPULATE MARQUEE ---
+const trackContainer = document.getElementById('marquee-track');
+let imagesHTML = '';
+for (let i = 1; i <= 12; i++) {
+  imagesHTML += `<img src="pictures/picture${i}.jpeg" alt="visual ${i}" class="marquee-img" onerror="this.src='https://via.placeholder.com/400x300/111/333?text=Picture+${i}'">`;
+}
+trackContainer.innerHTML = imagesHTML + imagesHTML;
 
-function toggleTheme() { const html = document.documentElement; html.setAttribute('data-theme', html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'); }
+// --- 2. GSAP SCROLL & CINEMATIC ANIMATIONS ---
+gsap.registerPlugin(ScrollTrigger);
+
+function initAnimations() {
+  gsap.fromTo(".hero-title", 
+    { y: 50, opacity: 0, scale: 0.95 }, 
+    { y: 0, opacity: 1, scale: 1, duration: 1.5, ease: "power4.out", delay: 0.2 }
+  );
+  gsap.fromTo(".hero-tag", 
+    { y: 30, opacity: 0 }, 
+    { y: 0, opacity: 1, duration: 1.5, ease: "power3.out", delay: 0.4 }
+  );
+  gsap.fromTo(".gs-reveal", 
+    { y: 20, opacity: 0 }, 
+    { y: 0, opacity: 1, duration: 1, stagger: 0.1, ease: "power2.out", delay: 0.6 }
+  );
+  gsap.utils.toArray('.gs-fade-up').forEach(elem => {
+    gsap.fromTo(elem, 
+      { y: 40, opacity: 0 }, 
+      { y: 0, opacity: 1, duration: 1.2, ease: "power3.out", scrollTrigger: {
+          trigger: elem, start: "top 85%", toggleActions: "play none none reverse"
+      }}
+    );
+  });
+  gsap.fromTo(".gs-bento",
+    { y: 60, opacity: 0 },
+    { y: 0, opacity: 1, duration: 1, stagger: 0.15, ease: "power3.out", scrollTrigger: {
+        trigger: ".bento", start: "top 85%"
+    }}
+  );
+  gsap.to(".marquee-wrapper", {
+    yPercent: 10, ease: "none", scrollTrigger: {
+      trigger: ".marquee-wrapper", start: "top bottom", end: "bottom top", scrub: true
+    }
+  });
+}
+
+// --- 3. THEME-AWARE WEBGL LIQUID SHADER ---
+const canvas = document.getElementById('shader-canvas');
+const gl = canvas.getContext('webgl');
+
+// Track current theme value for the shader (0.0 = dark, 1.0 = light)
+let shaderTheme = 0.0;
+let shaderThemeTarget = 0.0;
+let uTheme = null;
+
+if (gl) {
+  const vsSource = `
+    attribute vec4 aVertexPosition;
+    void main() { gl_Position = aVertexPosition; }
+  `;
+
+  // Domain warping shader with theme-aware color palettes.
+  // u_theme: 0.0 = dark mode, 1.0 = light mode
+  const fsSource = `
+    precision highp float;
+    uniform vec2 u_resolution;
+    uniform float u_time;
+    uniform float u_theme;
+
+    vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+    vec2 mod289(vec2 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+    vec3 permute(vec3 x) { return mod289(((x*34.0)+1.0)*x); }
+
+    float snoise(vec2 v) {
+      const vec4 C = vec4(0.211324865405187, 0.366025403784439, -0.577350269189626, 0.024390243902439);
+      vec2 i  = floor(v + dot(v, C.yy));
+      vec2 x0 = v - i + dot(i, C.xx);
+      vec2 i1;
+      i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
+      vec4 x12 = x0.xyxy + C.xxzz;
+      x12.xy -= i1;
+      i = mod289(i);
+      vec3 p = permute(permute(i.y + vec3(0.0, i1.y, 1.0)) + i.x + vec3(0.0, i1.x, 1.0));
+      vec3 m = max(0.5 - vec3(dot(x0,x0), dot(x12.xy,x12.xy), dot(x12.zw,x12.zw)), 0.0);
+      m = m*m; m = m*m;
+      vec3 x = 2.0 * fract(p * C.www) - 1.0;
+      vec3 h = abs(x) - 0.5;
+      vec3 ox = floor(x + 0.5);
+      vec3 a0 = x - ox;
+      m *= 1.79284291400159 - 0.85373472095314 * (a0*a0 + h*h);
+      vec3 g;
+      g.x  = a0.x  * x0.x  + h.x  * x0.y;
+      g.yz = a0.yz * x12.xz + h.yz * x12.yw;
+      return 130.0 * dot(m, g);
+    }
+
+    void main() {
+      vec2 st = gl_FragCoord.xy / u_resolution.xy;
+      st.x *= u_resolution.x / u_resolution.y;
+
+      // Domain warping
+      vec2 q = vec2(0.0);
+      q.x = snoise(st + 0.05 * u_time);
+      q.y = snoise(st + vec2(1.0));
+
+      vec2 r = vec2(0.0);
+      r.x = snoise(st + 1.0 * q + vec2(1.7, 9.2) + 0.15 * u_time);
+      r.y = snoise(st + 1.0 * q + vec2(8.3, 2.8) + 0.12 * u_time);
+
+      float f = snoise(st + r);
+
+      // --- Dark mode palette: near-black with subtle cool highlights ---
+      vec3 dark1 = vec3(0.02, 0.02, 0.02);
+      vec3 dark2 = vec3(0.12, 0.12, 0.15);
+      vec3 dark3 = vec3(0.18, 0.20, 0.24);
+
+      // --- Light mode palette: warm off-whites with soft warm highlights ---
+      vec3 light1 = vec3(0.94, 0.93, 0.90);  // warm base (matches #f0ede8)
+      vec3 light2 = vec3(0.88, 0.86, 0.83);  // slightly deeper warm mid
+      vec3 light3 = vec3(0.82, 0.80, 0.77);  // subtle warm shadow
+
+      // Build each theme's final color
+      vec3 darkColor  = mix(dark1, dark2, f + 0.5);
+      darkColor  = mix(darkColor,  dark3,  r.x * r.y);
+
+      vec3 lightColor = mix(light1, light2, f + 0.5);
+      lightColor = mix(lightColor, light3, r.x * r.y);
+
+      // Blend between themes using the smooth uniform
+      vec3 finalColor = mix(darkColor, lightColor, u_theme);
+
+      gl_FragColor = vec4(finalColor, 1.0);
+    }
+  `;
+
+  function compileShader(gl, type, source) {
+    const shader = gl.createShader(type);
+    gl.shaderSource(shader, source);
+    gl.compileShader(shader);
+    return shader;
+  }
+
+  const shaderProgram = gl.createProgram();
+  gl.attachShader(shaderProgram, compileShader(gl, gl.VERTEX_SHADER, vsSource));
+  gl.attachShader(shaderProgram, compileShader(gl, gl.FRAGMENT_SHADER, fsSource));
+  gl.linkProgram(shaderProgram);
+  gl.useProgram(shaderProgram);
+
+  const vertices = new Float32Array([-1.0, -1.0, 1.0, -1.0, -1.0, 1.0, 1.0, 1.0]);
+  const buffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+  gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+
+  const position = gl.getAttribLocation(shaderProgram, "aVertexPosition");
+  gl.enableVertexAttribArray(position);
+  gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
+
+  const uResolution = gl.getUniformLocation(shaderProgram, "u_resolution");
+  const uTime = gl.getUniformLocation(shaderProgram, "u_time");
+  uTheme = gl.getUniformLocation(shaderProgram, "u_theme");
+
+  function render(time) {
+    const pixelRatio = window.devicePixelRatio || 1;
+    canvas.width = window.innerWidth * pixelRatio;
+    canvas.height = window.innerHeight * pixelRatio;
+
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    gl.uniform2f(uResolution, canvas.width, canvas.height);
+    gl.uniform1f(uTime, time * 0.001);
+
+    // Smoothly interpolate shaderTheme toward shaderThemeTarget
+    // ~0.05 per frame ≈ ~750ms transition at 60fps, matching the CSS transition
+    shaderTheme += (shaderThemeTarget - shaderTheme) * 0.05;
+    gl.uniform1f(uTheme, shaderTheme);
+
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    requestAnimationFrame(render);
+  }
+  requestAnimationFrame(render);
+}
+
+// --- ORIGINAL JS LOGIC ---
+function toggleTheme() {
+  const html = document.documentElement;
+  const isDark = html.getAttribute('data-theme') === 'dark';
+  html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  // Tell the shader which direction to animate
+  shaderThemeTarget = isDark ? 1.0 : 0.0;
+}
 
 const TRACKS = [
   { title: 'alive', artist: 'khel', file: 'music/khel.mp3', cover: 'music/khel.jpeg' },
@@ -235,7 +467,6 @@ const panel = document.getElementById('m-panel');
 const vSlider = document.getElementById('v-slider');
 
 player.volume = 0.3;
-
 vSlider.addEventListener('input', (e) => { player.volume = e.target.value; });
 
 function togglePlayer() { panel.classList.toggle('open'); }
@@ -245,10 +476,10 @@ function loadTrack(index) {
   player.src = track.file;
   document.getElementById('s-title').textContent = track.title;
   document.getElementById('s-artist').textContent = track.artist;
-  
+
   const artWrap = document.getElementById('m-art');
   const placeholder = document.getElementById('art-placeholder');
-  
+
   if (track.cover) {
     artWrap.style.backgroundImage = `url(${track.cover})`;
     placeholder.style.display = 'none';
@@ -282,6 +513,7 @@ function startExperience() {
   document.getElementById('enter-screen').style.visibility = 'hidden';
   document.body.classList.add('site-loaded');
   document.body.classList.remove('no-scroll');
+  initAnimations();
   loadTrack(0);
   togglePlay();
 }
@@ -291,6 +523,67 @@ function prevTrack() { currentTrack = (currentTrack - 1 + TRACKS.length) % TRACK
 
 player.addEventListener('ended', nextTrack);
 loadTrack(currentTrack);
+
+// --- 4. GLOBAL VISIT COUNTER (CountAPI) ---
+// CountAPI is a free, no-auth hit counter. Each unique namespace+key is your counter.
+// Change the key suffix (visits-v1) if you ever want to reset.
+const COUNTER_URL = 'https://api.countapi.xyz/hit/nihi-portfolio-site/visits-v1';
+
+async function initVisitCounter() {
+  const el = document.getElementById('stat-visits');
+  try {
+    const res = await fetch(COUNTER_URL);
+    if (!res.ok) throw new Error('bad response');
+    const data = await res.json();
+    const count = data.value;
+
+    el.classList.remove('loading');
+    // Animate counting up
+    let current = Math.max(0, count - 40);
+    const step = () => {
+      if (current < count) {
+        current = Math.min(current + Math.ceil((count - current) / 8), count);
+        el.textContent = current.toLocaleString();
+        requestAnimationFrame(step);
+      } else {
+        el.textContent = count.toLocaleString();
+      }
+    };
+    step();
+  } catch (err) {
+    document.getElementById('stat-visits').textContent = '—';
+    console.warn('Visit counter unavailable:', err);
+  }
+}
+
+// --- 5. LIVE UPTIME CLOCK ---
+// Set this to your actual launch date: new Date(YEAR, MONTH-1, DAY)
+const SITE_BORN = new Date(2026, 2, 20); // March 20, 2026
+
+function updateUptime() {
+  const el = document.getElementById('stat-uptime');
+  const diff = Date.now() - SITE_BORN.getTime();
+  const totalSeconds = Math.floor(diff / 1000);
+  const days    = Math.floor(totalSeconds / 86400);
+  const hours   = Math.floor((totalSeconds % 86400) / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  let display;
+  if (days >= 365) {
+    const years = Math.floor(days / 365);
+    display = years + 'y ' + (days % 365) + 'd';
+  } else if (days >= 1) {
+    display = days + 'd ' + String(hours).padStart(2,'0') + 'h';
+  } else {
+    display = String(hours).padStart(2,'0') + ':' + String(minutes).padStart(2,'0') + ':' + String(seconds).padStart(2,'0');
+  }
+  el.textContent = display;
+}
+
+updateUptime();
+setInterval(updateUptime, 1000);
+initVisitCounter();
 </script>
 </body>
 </html>
