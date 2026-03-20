@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>nihi ✦</title>
-<link id="favicon" rel="icon" type="image/png">
+<link id="favicon" rel="icon" type="image/png" href="data:,">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
@@ -767,8 +767,17 @@ function startExperience() {
   document.body.classList.add('site-loaded');
   document.body.classList.remove('no-scroll');
   initAnimations();
-  // Don't autoplay on enter — let user open the music panel manually.
-  // This prevents the browser tab from spinning on missing audio files.
+  // Load and play the first track on enter
+  loadTrack(currentTrack);
+  trackLoaded = true;
+  player.play().then(() => {
+    document.getElementById('play-icon').style.display = 'none';
+    document.getElementById('pause-icon').style.display = 'block';
+    trigger.classList.add('is-playing');
+    isPlaying = true;
+  }).catch(() => {
+    // Browser blocked autoplay — user can press play manually
+  });
 }
 
 function nextTrack() { currentTrack = (currentTrack + 1) % TRACKS.length; loadTrack(currentTrack); if(isPlaying) player.play(); }
