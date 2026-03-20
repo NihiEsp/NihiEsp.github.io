@@ -228,6 +228,14 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 24px 48
 .ctrl-btn { color: var(--text); padding: 12px; border-radius: 50%; display: flex; }
 .play-btn { background: var(--text); color: var(--bg); padding: 16px; border-radius: 50%; }
 
+.visualizer-wrap {
+  width: 100%; aspect-ratio: 1; margin-bottom: 24px;
+  border-radius: 20px; overflow: hidden;
+  background: var(--surface); border: 1px solid var(--border);
+  position: relative;
+}
+#viz-canvas { width: 100%; height: 100%; display: block; }
+
 .theme-toggle { position: fixed; bottom: 32px; left: 48px; z-index: 100; width: 48px; height: 48px; border-radius: 50%; background: var(--surface); border: 1px solid var(--border); color: var(--text); display: flex; align-items: center; justify-content: center; transition: 0.3s; }
 .theme-toggle:hover { transform: scale(1.1); }
 .moon-icon { display: none; }
@@ -384,7 +392,7 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 24px 48
 
 <section class="section" id="contact">
   <div class="contact-wrap gs-fade-up">
-    <a href="mailto:nihil.us.noodle1@proton.me" class="contact-link">Find me ↗</a>
+    <a href="/cdn-cgi/l/email-protection#5a3433323336742f29743435353e363f6b1a2a28352e353474373f" class="contact-link">Find me ↗</a>
     <ul class="socials">
       <li><a href="https://discord.com/users/647532622523793429" target="_blank">Discord</a></li>
       <li><a href="https://x.com/NoodleDragon10" target="_blank">Twitter</a></li>
@@ -428,6 +436,9 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 24px 48
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5zM19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
     <input type="range" class="volume-slider" id="v-slider" min="0" max="1" step="0.01" value="0.3">
   </div>
+  <div class="visualizer-wrap">
+    <canvas id="viz-canvas"></canvas>
+  </div>
   <div class="controls">
     <button class="ctrl-btn" onclick="prevTrack()"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/></svg></button>
     <button class="ctrl-btn play-btn" onclick="togglePlay()"><svg id="play-icon" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg><svg id="pause-icon" style="display:none;" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg></button>
@@ -436,7 +447,7 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 24px 48
   <audio id="audio-player"></audio>
 </div>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 // --- 0. ENTER SCREEN SHADER + ANIMATIONS ---
 (function() {
   const ec = document.getElementById('enter-canvas');
@@ -750,20 +761,151 @@ function loadTrack(index) {
   player.load();
 }
 
+// --- AUDIO VISUALIZER ---
+let audioCtx, analyser, sourceNode, vizRaf;
+let vizReady = false;
+
+function initVisualizer() {
+  if (vizReady) return;
+  audioCtx  = new (window.AudioContext || window.webkitAudioContext)();
+  analyser  = audioCtx.createAnalyser();
+  analyser.fftSize = 64;
+  analyser.smoothingTimeConstant = 0.8;
+  sourceNode = audioCtx.createMediaElementSource(player);
+  sourceNode.connect(analyser);
+  analyser.connect(audioCtx.destination);
+  vizReady = true;
+}
+
+function drawViz() {
+  const canvas = document.getElementById('viz-canvas');
+  if (!canvas || !analyser) return;
+
+  // Switch to time-domain for the waveform
+  analyser.fftSize = 256;
+  const bufLen = analyser.fftSize;
+  const data   = new Uint8Array(bufLen);
+
+  const ctx = canvas.getContext('2d');
+
+  function resize() {
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width  = canvas.offsetWidth  * dpr;
+    canvas.height = canvas.offsetHeight * dpr;
+  }
+  resize();
+
+  function frame() {
+    vizRaf = requestAnimationFrame(frame);
+    resize();
+
+    const W = canvas.width, H = canvas.height;
+    const cx = W / 2, cy = H / 2;
+    const dpr = window.devicePixelRatio || 1;
+    const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+
+    analyser.getByteTimeDomainData(data);
+
+    ctx.clearRect(0, 0, W, H);
+
+    // --- outer glow ring (static) ---
+    const baseR = Math.min(W, H) * 0.30;
+    ctx.beginPath();
+    ctx.arc(cx, cy, baseR, 0, Math.PI * 2);
+    ctx.strokeStyle = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+    ctx.lineWidth = 1 * dpr;
+    ctx.stroke();
+
+    // --- compute average amplitude for overall pulse ---
+    let sum = 0;
+    for (let i = 0; i < bufLen; i++) sum += Math.abs(data[i] - 128);
+    const avg = sum / bufLen;
+    const pulse = avg / 128; // 0..1
+
+    // --- draw waveform ring ---
+    // plot each sample around a circle, displaced radially by its amplitude
+    const displacement = Math.min(W, H) * 0.14; // max outward push
+    const lineW = 1.5 * dpr;
+
+    // draw twice — mirrored — for symmetry
+    for (let mirror = 0; mirror < 2; mirror++) {
+      ctx.beginPath();
+      for (let i = 0; i < bufLen; i++) {
+        const t = mirror === 0
+          ? i / bufLen
+          : 1 - i / bufLen;
+        const angle  = t * Math.PI * 2 - Math.PI / 2;
+        const sample = (data[i] - 128) / 128; // -1..1
+        const r      = baseR + sample * displacement;
+        const x      = cx + Math.cos(angle) * r;
+        const y      = cy + Math.sin(angle) * r;
+        i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+
+      // gradient stroke — brighter at top, fades at bottom
+      const grad = ctx.createLinearGradient(cx, cy - baseR - displacement, cx, cy + baseR + displacement);
+      if (isDark) {
+        grad.addColorStop(0,   'rgba(255,255,255,0.9)');
+        grad.addColorStop(0.5, 'rgba(255,255,255,0.4)');
+        grad.addColorStop(1,   'rgba(255,255,255,0.1)');
+      } else {
+        grad.addColorStop(0,   'rgba(0,0,0,0.8)');
+        grad.addColorStop(0.5, 'rgba(0,0,0,0.3)');
+        grad.addColorStop(1,   'rgba(0,0,0,0.05)');
+      }
+      ctx.strokeStyle = grad;
+      ctx.lineWidth   = lineW;
+      ctx.lineJoin    = 'round';
+      ctx.stroke();
+    }
+
+    // --- centre dot that pulses with bass ---
+    const dotR = (4 + pulse * 10) * dpr;
+    ctx.beginPath();
+    ctx.arc(cx, cy, dotR, 0, Math.PI * 2);
+    ctx.fillStyle = isDark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.5)';
+    ctx.fill();
+
+    // --- idle state: draw a perfect still ring when silent ---
+    if (avg < 1.5) {
+      ctx.beginPath();
+      ctx.arc(cx, cy, baseR, 0, Math.PI * 2);
+      ctx.strokeStyle = isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)';
+      ctx.lineWidth   = lineW;
+      ctx.stroke();
+    }
+  }
+  frame();
+}
+
+function stopViz() {
+  if (vizRaf) cancelAnimationFrame(vizRaf);
+  const canvas = document.getElementById('viz-canvas');
+  if (canvas) {
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+}
+
 async function togglePlay() {
   if (isPlaying) {
     player.pause();
+    stopViz();
     document.getElementById('play-icon').style.display = 'block';
     document.getElementById('pause-icon').style.display = 'none';
     trigger.classList.remove('is-playing');
     isPlaying = false;
   } else {
     try {
+      initVisualizer();
+      if (audioCtx.state === 'suspended') await audioCtx.resume();
       await player.play();
       document.getElementById('play-icon').style.display = 'none';
       document.getElementById('pause-icon').style.display = 'block';
       trigger.classList.add('is-playing');
       isPlaying = true;
+      drawViz();
     } catch (e) { console.error("Playback failed."); }
   }
 }
@@ -780,11 +922,13 @@ function startExperience() {
   // Load and play the first track on enter
   loadTrack(currentTrack);
   trackLoaded = true;
+  initVisualizer();
   player.play().then(() => {
     document.getElementById('play-icon').style.display = 'none';
     document.getElementById('pause-icon').style.display = 'block';
     trigger.classList.add('is-playing');
     isPlaying = true;
+    drawViz();
   }).catch(() => {
     // Browser blocked autoplay — user can press play manually
   });
@@ -956,14 +1100,4 @@ async function fetchCurrently() {
     }
   } catch(e) {
     // silently ignore — static fallback text already in DOM as '—'
-    console.warn('currently.json not found yet:', e);
-  }
-}
-
-fetchCurrently();
-
-// Footer year
-document.getElementById('footer-year').textContent = new Date().getFullYear();
-</script>
-</body>
-</html>
+    console.warn('currently.json not found
