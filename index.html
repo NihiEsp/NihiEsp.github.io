@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>nihi ✦</title>
-<link id="favicon" rel="icon" type="image/svg+xml">
+<link id="favicon" rel="icon" type="image/png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
@@ -767,21 +767,23 @@ function startExperience() {
   document.body.classList.add('site-loaded');
   document.body.classList.remove('no-scroll');
   initAnimations();
-  loadTrack(0);
-  // Autoplay — silently ignored if browser blocks it (user can press play manually)
-  player.play().then(() => {
-    document.getElementById('play-icon').style.display = 'none';
-    document.getElementById('pause-icon').style.display = 'block';
-    trigger.classList.add('is-playing');
-    isPlaying = true;
-  }).catch(() => {});
+  // Don't autoplay on enter — let user open the music panel manually.
+  // This prevents the browser tab from spinning on missing audio files.
 }
 
 function nextTrack() { currentTrack = (currentTrack + 1) % TRACKS.length; loadTrack(currentTrack); if(isPlaying) player.play(); }
 function prevTrack() { currentTrack = (currentTrack - 1 + TRACKS.length) % TRACKS.length; loadTrack(currentTrack); if(isPlaying) player.play(); }
 
 player.addEventListener('ended', nextTrack);
-loadTrack(currentTrack);
+
+// Don't call player.load() on page init — it keeps the browser tab spinning.
+// Instead, load the track lazily the first time the panel is opened or play is pressed.
+let trackLoaded = false;
+const _origTogglePlayer = togglePlayer;
+function togglePlayer() {
+  if (!trackLoaded) { loadTrack(currentTrack); trackLoaded = true; }
+  panel.classList.toggle('open');
+}
 
 // --- 4. GLOBAL VISIT COUNTER (counterapi.dev) ---
 // counterapi.dev is free, no signup needed. Each namespace+key is a unique counter.
