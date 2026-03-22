@@ -978,9 +978,9 @@ function drawViz(){
 }
 
 function stopViz(){
-  // Don't cancel — just let analyser drain to silence naturally.
+  // Don't cancel
   // The ring keeps spinning with no input which looks better than disappearing.
-  // vizRaf keeps going; drawViz() already loops itself.
+  // vizRaf keeps going
 }
 
 async function togglePlay() {
@@ -1044,8 +1044,6 @@ function togglePlayer() {
 }
 
 // --- 4. GLOBAL VISIT COUNTER (counterapi.dev) ---
-// counterapi.dev is free, no signup needed. Each namespace+key is a unique counter.
-// Change the namespace string below if you ever want to reset.
 const COUNTER_NS  = 'nihi-folio-2026';
 const COUNTER_KEY = 'visits';
 const COUNTER_URL = `https://api.counterapi.dev/v1/${COUNTER_NS}/${COUNTER_KEY}/up`;
@@ -1079,7 +1077,6 @@ async function initVisitCounter() {
 }
 
 // --- 5. LIVE UPTIME CLOCK ---
-// Set this to your actual launch date: new Date(YEAR, MONTH-1, DAY)
 const SITE_BORN = new Date(2026, 2, 20); // March 20, 2026
 
 function updateUptime() {
@@ -1161,9 +1158,9 @@ async function fetchNowPlaying() {
 
     if (!track || !isLive) {
       // Nothing currently scrobbling — show idle state
-      document.getElementById('curr-track').textContent           = 'nothing on';
+      document.getElementById('curr-track').textContent           = 'Nothing on';
       document.getElementById('curr-artist').textContent          = '';
-      document.getElementById('curr-artist-static').textContent   = 'not listening';
+      document.getElementById('curr-artist-static').textContent   = 'Not listening';
       document.getElementById('curr-live-wrap').style.display     = 'none';
       document.getElementById('curr-artist-static').style.display = 'block';
       return;
