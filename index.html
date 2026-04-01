@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>nihi ✦</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='82' font-size='85' text-anchor='middle' x='50'>✦</text></svg>">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/enter.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/player.css">
+  <link rel="stylesheet" href="css/ui.css">
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+</head>
+<body class="no-scroll">
+
+<!-- ═══════════════════════════════════════════════════════════
+     CUSTOM CURSOR
+════════════════════════════════════════════════════════════ -->
+<div class="cursor-dot"  id="cursor-dot"></div>
+<div class="cursor-ring" id="cursor-ring"></div>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     ENTER SCREEN
+════════════════════════════════════════════════════════════ -->
+<div id="enter-screen">
+  <canvas id="enter-canvas"></canvas>
+
+  <div class="enter-line"   style="left:50%"></div>
+  <div class="enter-line-h" style="top:50%"></div>
+
+  <div class="enter-content">
+    <div class="enter-name" id="enter-name">
+      <span>N</span><span>I</span><span>H</span><span>I</span>
+    </div>
+    <div class="enter-sub" id="enter-sub">visuals &amp; management</div>
+    <div class="enter-ring-wrap" id="enter-ring-wrap">
+      <div class="enter-ring-pulse"></div>
+      <div class="enter-ring" onclick="startExperience()" id="enter-ring">
+        <span class="enter-ring-label">Enter</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     MAIN CONTENT
+════════════════════════════════════════════════════════════ -->
+<main id="main-content">
+  <canvas id="shader-canvas"></canvas>
+
+  <!-- ── Navigation ── -->
+  <nav id="main-nav">
+    <div class="nav-logo gs-reveal">Nihi</div>
+    <ul class="nav-links gs-reveal">
+      <li><a href="#work">Work</a></li>
+      <li><a href="#about">About</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+  </nav>
+
+  <!-- ── Hero ── -->
+  <section class="hero">
+    <div class="hero-bg-line hero-bg-line--v"></div>
+    <div class="hero-bg-line hero-bg-line--h"></div>
+    <div class="hero-content">
+      <p class="hero-eyebrow gs-hero-sub">GMT+1 &nbsp;·&nbsp; Visuals &amp; Management</p>
+      <h1 class="hero-title">
+        <span class="hero-letter">N</span><span class="hero-letter">I</span><span class="hero-letter">H</span><span class="hero-letter">I</span>
+      </h1>
+      <p class="hero-tag gs-hero-sub">I make things.</p>
+    </div>
+    <div class="hero-scroll-hint" id="hero-scroll">
+      <span>Scroll</span>
+      <div class="scroll-line"></div>
+    </div>
+    <div class="hero-corner hero-corner--tl">✦</div>
+    <div class="hero-corner hero-corner--br">✦</div>
+  </section>
+
+  <!-- ── Marquee ── -->
+  <div class="marquee-wrapper gs-fade">
+    <div class="marquee-track" id="marquee-track"></div>
+  </div>
+
+  <!-- ── Currently ── -->
+  <section class="section" id="currently">
+    <div class="sec-header gs-fade-up">
+      <div class="sec-sub">Right Now</div>
+      <h2 class="sec-title">Currently</h2>
+    </div>
+    <div class="currently-grid">
+
+      <div class="curr-card gs-bento" id="curr-listening">
+        <div class="curr-icon">♪</div>
+        <div class="curr-label">Listening to</div>
+        <div class="curr-value" id="curr-track">—</div>
+        <div class="curr-live" id="curr-live-wrap" style="display:none">
+          <div class="curr-live-dot"></div>
+          <span class="curr-sub" id="curr-artist"></span>
+        </div>
+        <div class="curr-sub" id="curr-artist-static" style="display:none"></div>
+      </div>
+
+      <div class="curr-card gs-bento">
+        <div class="curr-icon">◉</div>
+        <div class="curr-label">Watching</div>
+        <div class="curr-value" id="curr-watching">—</div>
+        <div class="curr-sub"   id="curr-watching-sub"></div>
+      </div>
+
+      <div class="curr-card gs-bento">
+        <div class="curr-icon">✦</div>
+        <div class="curr-label">Working on</div>
+        <div class="curr-value" id="curr-working">—</div>
+        <div class="curr-sub"   id="curr-working-sub"></div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── Work / Projects ── -->
+  <section class="section" id="work">
+    <div class="sec-header gs-fade-up">
+      <div class="sec-sub">Selected Work</div>
+      <h2 class="sec-title">Projects</h2>
+    </div>
+    <div class="project-grid" id="project-grid">
+      <!-- Populated by js/projects.js -->
+    </div>
+  </section>
+
+  <!-- ── About / Bento ── -->
+  <section class="section" id="about">
+    <div class="sec-header gs-fade-up">
+      <div class="sec-sub">About Me</div>
+      <h2 class="sec-title">Visuals &amp; Management</h2>
+    </div>
+    <div class="bento">
+
+      <div class="bento-card card-span-2 gs-bento">
+        <div class="bento-eyebrow">Bio</div>
+        <h3 class="bento-h">I like random stuff.</h3>
+        <p class="bento-p">Currently learning visual design and After Effects. Still working on something worth showing.</p>
+      </div>
+
+      <div class="bento-card gs-bento">
+        <div class="bento-eyebrow">Interests</div>
+        <div class="bento-tags">
+          <span class="b-tag">Fashion</span>
+          <span class="b-tag">Music</span>
+          <span class="b-tag">Art</span>
+          <span class="b-tag">After Effects</span>
+          <span class="b-tag">Design</span>
+        </div>
+      </div>
+
+      <div class="bento-card bento-loc gs-bento">
+        <div class="bento-eyebrow">Location</div>
+        <div class="bento-loc-main">GMT+1</div>
+        <div class="bento-loc-city">Warsaw, PL</div>
+        <div class="bento-clock" id="bento-clock"></div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── Contact ── -->
+  <section class="section" id="contact">
+    <div class="contact-wrap gs-fade-up">
+      <p class="contact-eyebrow">Let's talk</p>
+      <a href="/cdn-cgi/l/email-protection#5a3433323336742f29743435353e363f6b1a2a28352e353474373f" class="contact-link">Find me ↗</a>
+      <ul class="socials">
+        <li><a href="https://discord.com/users/647532622523793429" target="_blank">Discord</a></li>
+        <li><a href="https://x.com/NoodleDragon10"                target="_blank">Twitter</a></li>
+        <li><a href="https://guns.lol/nihi"                       target="_blank">Guns.lol</a></li>
+        <li><a href="https://www.roblox.com/users/570659566/profile" target="_blank">Roblox</a></li>
+      </ul>
+
+      <div class="site-stats" id="site-stats">
+        <div class="stat-item">
+          <span class="stat-label">Visitors</span>
+          <span class="stat-value loading" id="stat-visits">…</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Live since</span>
+          <div class="stat-live">
+            <div class="stat-live-dot"></div>
+            <span class="stat-value" id="stat-uptime">—</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Footer ── -->
+  <footer>
+    <p>&copy; <span id="footer-year"></span> nihi &nbsp;·&nbsp; all rights reserved</p>
+  </footer>
+</main>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     FLOATING UI
+════════════════════════════════════════════════════════════ -->
+<button class="theme-toggle gs-reveal" onclick="toggleTheme()">
+  <svg class="sun-icon"  width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+  <svg class="moon-icon" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+</button>
+
+<button class="music-trigger gs-reveal" id="m-trigger" onclick="togglePlayer()">
+  <div class="dot"></div> Music
+</button>
+
+<!-- Music panel -->
+<div class="music-panel" id="m-panel">
+  <button class="panel-close" onclick="togglePlayer()">×</button>
+  <div class="panel-label">Now Playing</div>
+  <div class="player-art-wrap" id="m-art">
+    <span id="art-placeholder" class="art-placeholder-glyph">♫</span>
+  </div>
+  <div class="player-info">
+    <div class="song-title"  id="s-title">Track Title</div>
+    <div class="song-artist" id="s-artist">Artist Name</div>
+  </div>
+  <div class="visualizer-wrap">
+    <canvas id="viz-canvas"></canvas>
+  </div>
+  <div class="volume-container">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M11 5L6 9H2v6h4l5 4V5zM19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
+    </svg>
+    <input type="range" class="volume-slider" id="v-slider" min="0" max="1" step="0.01" value="0.3">
+  </div>
+  <div class="controls">
+    <button class="ctrl-btn" onclick="prevTrack()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/></svg>
+    </button>
+    <button class="ctrl-btn play-btn" onclick="togglePlay()">
+      <svg id="play-icon"  width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      <svg id="pause-icon" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" style="display:none"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+    </button>
+    <button class="ctrl-btn" onclick="nextTrack()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
+    </button>
+  </div>
+  <audio id="audio-player"></audio>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SCRIPTS — load order matters, see CLAUDE.md
+════════════════════════════════════════════════════════════ -->
+<script src="js/shader.js"></script>
+<script src="js/animations.js"></script>
+<script src="js/player.js"></script>
+<script src="js/data.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/projects.js"></script>
+<script src="js/cursor.js"></script>
+<script src="js/enter.js"></script>
+
+</body>
+</html>
