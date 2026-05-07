@@ -131,31 +131,32 @@ body.site-loaded { overflow: hidden; }
 .page {
   position: absolute; inset: 0;
   overflow: hidden;
-  transform: translate3d(100%, 0, 0);
-  transition: transform 1.1s cubic-bezier(0.76, 0, 0.24, 1);
-  will-change: transform;
+  opacity: 0;
+  visibility: hidden;
   pointer-events: none;
+  will-change: clip-path;
 }
 .page.is-active {
-  transform: translate3d(0, 0, 0);
+  opacity: 1;
+  visibility: visible;
   pointer-events: auto;
 }
 .page-inner {
   position: absolute; inset: 0;
-  overflow-y: auto; overflow-x: hidden;
-  padding: 110px 0 80px;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+  overflow: hidden;
+  padding: 110px 0 0;
 }
 .page-inner::-webkit-scrollbar { display: none; width: 0; height: 0; }
 .page-inner-home {
   display: flex; flex-direction: column; justify-content: center;
-  padding: 110px 0 40px;
-  gap: 24px;
+  padding: 100px 0 0;
+  gap: 0;
+  overflow: hidden;
 }
 .page-inner-contact {
   display: flex; flex-direction: column; justify-content: center;
-  padding: 110px 0 0;
+  padding: 100px 0 0;
+  overflow: hidden;
 }
 .nav-links a.is-current { color: var(--text); }
 .nav-links a.is-current::after {
@@ -170,35 +171,50 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 24px 48
 .nav-links a { font-size: 11px; text-transform: uppercase; letter-spacing: 0.2em; color: var(--text-muted); transition: color 0.3s; }
 .nav-links a:hover { color: var(--text); }
 
-.hero { min-height: 80svh; display: flex; flex-direction: column; justify-content: center; padding: 0 48px; position: relative; margin-top: 5vh; }
+.hero { display: flex; flex-direction: column; justify-content: center; padding: 0 48px; position: relative; flex: 1; }
 .hero-content { max-width: 1000px; margin: 0 auto; text-align: center; width: 100%; }
-.hero-title { font-family: 'Cormorant Garamond', serif; font-size: clamp(80px, 15vw, 220px); font-weight: 300; line-height: 0.9; letter-spacing: -0.02em; }
-.hero-tag { font-size: clamp(14px, 2vw, 18px); color: var(--text-muted); letter-spacing: 0.2em; text-transform: uppercase; margin-top: 16px; font-weight: 300; }
+.hero-title { font-family: 'Cormorant Garamond', serif; font-size: clamp(70px, 13vw, 190px); font-weight: 300; line-height: 0.9; letter-spacing: -0.02em; }
+.hero-tag { font-size: clamp(13px, 1.8vw, 17px); color: var(--text-muted); letter-spacing: 0.2em; text-transform: uppercase; margin-top: 14px; font-weight: 300; }
 
-.marquee-wrapper { width: 100vw; overflow: hidden; padding: 24px 0; background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); position: relative; display: flex; }
-.marquee-track { display: flex; gap: 16px; width: max-content; animation: scroll-marquee 30s linear infinite; padding-left: 16px; }
+.marquee-wrapper { width: 100%; overflow: hidden; padding: 20px 0; background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); position: relative; display: flex; flex-shrink: 0; }
+.marquee-track { display: flex; width: max-content; animation: scroll-marquee 30s linear infinite; will-change: transform; }
 .marquee-track:hover { animation-play-state: paused; }
-.marquee-img { height: 260px; width: auto; object-fit: cover; border-radius: 12px; filter: grayscale(80%) contrast(1.2); transition: filter 0.4s; }
+.marquee-img { height: 220px; width: auto; object-fit: cover; border-radius: 12px; filter: grayscale(80%) contrast(1.2); transition: filter 0.4s; flex-shrink: 0; margin-right: 16px; }
 .marquee-img:hover { filter: grayscale(0%) contrast(1); }
 
 @keyframes scroll-marquee {
   0% { transform: translateX(0); }
-  100% { transform: translateX(calc(-50% - 8px)); }
+  100% { transform: translateX(-50%); }
 }
 
-.section { padding: 80px 48px; max-width: 1400px; margin: 0 auto; }
-.sec-header { margin-bottom: 40px; text-align: center; }
-.sec-title { font-family: 'Cormorant Garamond', serif; font-size: 48px; font-weight: 300; }
-.sec-sub { font-size: 12px; text-transform: uppercase; letter-spacing: 0.2em; color: var(--text-muted); margin-bottom: 8px; }
-.bento { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; grid-auto-rows: 260px; }
-.bento-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--bento-rad); padding: 32px; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); display: flex; flex-direction: column; justify-content: center; transition: transform 0.4s var(--ease), background 0.4s var(--ease); overflow: hidden; position: relative; }
+/* ── Mask Transition Overlay ── */
+#mask-overlay {
+  position: fixed; inset: 0; z-index: 9000;
+  pointer-events: none;
+  background: var(--bg);
+  clip-path: circle(0% at 50% 50%);
+  will-change: clip-path;
+}
+
+/* ── Compact sections for no-scroll ── */
+.section { padding: 40px 48px 24px; max-width: 1400px; margin: 0 auto; }
+.sec-header { margin-bottom: 28px; text-align: center; }
+.bento { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; grid-auto-rows: 200px; }
+.bento-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--bento-rad); padding: 24px; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); display: flex; flex-direction: column; justify-content: center; transition: transform 0.4s var(--ease), background 0.4s var(--ease); overflow: hidden; position: relative; }
 .bento-card:hover { transform: translateY(-4px); background: var(--surface-hover); }
+.bento-h { font-family: 'Cormorant Garamond', serif; font-size: 34px; font-weight: 300; line-height: 1.1; margin-bottom: 10px; }
+.currently-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.curr-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--bento-rad); padding: 24px 22px; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); display: flex; flex-direction: column; gap: 8px; transition: transform 0.4s var(--ease), background 0.4s var(--ease); min-height: 130px; position: relative; overflow: hidden; }
+.curr-card:hover { transform: translateY(-4px); background: var(--surface-hover); }
+.curr-card::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,255,255,0.03), transparent); pointer-events: none; }
+
 .card-span-2 { grid-column: span 2; }
 .card-span-4 { grid-column: span 4; }
-.bento-h { font-family: 'Cormorant Garamond', serif; font-size: 42px; font-weight: 300; line-height: 1.1; margin-bottom: 12px; }
-.bento-p { font-size: 15px; color: var(--text-muted); line-height: 1.6; }
+.bento-p { font-size: 14px; color: var(--text-muted); line-height: 1.6; }
 .bento-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; }
-.b-tag { padding: 8px 16px; border: 1px solid var(--border); border-radius: 40px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text); }
+.b-tag { padding: 6px 14px; border: 1px solid var(--border); border-radius: 40px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text); }
+.sec-title { font-family: 'Cormorant Garamond', serif; font-size: 42px; font-weight: 300; }
+.sec-sub { font-size: 12px; text-transform: uppercase; letter-spacing: 0.2em; color: var(--text-muted); margin-bottom: 8px; }
 
 .work-card-row {
   grid-column: span 4;
@@ -213,7 +229,8 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 24px 48
   padding: 32px;
   transition: background 0.4s var(--ease);
   position: relative;
-  overflow: hidden;
+  overflow: visible;
+  min-height: 260px;
 }
 .work-card-row:hover {
   background: var(--surface-hover);
@@ -694,7 +711,7 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 24px 48
   </div>
 </section>
 
-<footer style="text-align:center; padding: 32px 48px 48px; border-top: 1px solid var(--border); margin-top: 40px;">
+<footer style="text-align:center; padding: 16px 48px 24px; border-top: 1px solid var(--border); margin-top: 24px;">
   <p style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.2em; color: var(--text-muted);">
     &copy; <span id="footer-year"></span> nihi &nbsp;·&nbsp; all rights reserved
   </p>
@@ -761,19 +778,15 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 24px 48
 </div>
 
 <script>
-const BG_IMAGES = [
-  '/background/1.jpg','/background/2.jpg','/background/3.jpg',
-  '/background/4.jpg','/background/5.jpg','/background/6.jpg'
-];
-function pickBg(){ return BG_IMAGES[Math.floor(Math.random()*BG_IMAGES.length)]; }
+const BG_SRC = 'pictures/background.png';
+function pickBg(){ return BG_SRC; }
 (function setEnterBg(){
   const el = document.getElementById('enter-bg');
   if (!el) return;
-  const src = pickBg();
   const img = new Image();
-  img.onload = () => { el.style.backgroundImage = `url("${src}")`; };
+  img.onload = () => { el.style.backgroundImage = `url("${BG_SRC}")`; };
   img.onerror = () => { el.style.background = '#0a0a0a'; };
-  img.src = src;
+  img.src = BG_SRC;
   window._stopEnterShader = () => {};
 })();
 (function legacyShaderStub() {
@@ -846,8 +859,9 @@ window.addEventListener('DOMContentLoaded', () => {
 const trackContainer = document.getElementById('marquee-track');
 let imagesHTML = '';
 for (let i = 1; i <= 12; i++) {
-  imagesHTML += `<img src="pictures/picture1.png" alt="visual ${i}" class="marquee-img" onerror="this.style.display='none'">`;
+  imagesHTML += `<img src="pictures/picture1.png" alt="visual ${i}" class="marquee-img" loading="lazy" onerror="this.style.display='none'">`;
 }
+// Duplicate exactly once — animation goes -50% for perfect loop
 trackContainer.innerHTML = imagesHTML + imagesHTML;
 
 function initAnimations() {
@@ -868,50 +882,57 @@ function revealPage(pageEl) {
   );
 }
 
-// ---- Parallel page transition ----
+// ---- Epic mask / clip-path page transition ----
 const PAGES = ['home','currently','about','contact'];
 let currentPage = 'home', isTransitioning = false;
+
+// Transition origin patterns — rotated between pages for variety
+const MASK_ORIGINS = [
+  '50% 50%',   // center
+  '0% 100%',   // bottom-left
+  '100% 0%',   // top-right
+  '100% 100%', // bottom-right
+];
+let maskOriginIdx = 0;
+
 function navigateTo(target){
   if (isTransitioning || target === currentPage) return;
-  const fromIdx = PAGES.indexOf(currentPage);
-  const toIdx   = PAGES.indexOf(target);
+  const toIdx = PAGES.indexOf(target);
   if (toIdx === -1) return;
-  const dir = toIdx > fromIdx ? 1 : -1; // 1 = forward; new page enters from right
-  const fromEl = document.querySelector(`.page[data-page="${currentPage}"]`);
-  const toEl   = document.querySelector(`.page[data-page="${target}"]`);
-  if (!fromEl || !toEl) return;
   isTransitioning = true;
 
-  // Park incoming offscreen instantly on the correct side
-  toEl.style.transition = 'none';
-  toEl.style.transform = `translate3d(${dir * 100}%, 0, 0)`;
-  toEl.classList.remove('is-active');
-  void toEl.offsetWidth; // reflow
-  toEl.style.transition = '';
+  const fromEl = document.querySelector(`.page[data-page="${currentPage}"]`);
+  const toEl   = document.querySelector(`.page[data-page="${target}"]`);
+  if (!fromEl || !toEl) { isTransitioning = false; return; }
 
-  // Animate both in parallel — outgoing slides off, incoming slides in
-  requestAnimationFrame(() => {
-    fromEl.classList.remove('is-active');
-    fromEl.style.transform = `translate3d(${-dir * 100}%, 0, 0)`;
-    toEl.style.transform = 'translate3d(0,0,0)';
-    toEl.classList.add('is-active');
+  // Pick an origin for this reveal
+  const origin = MASK_ORIGINS[maskOriginIdx % MASK_ORIGINS.length];
+  maskOriginIdx++;
+
+  // Layer incoming on top
+  toEl.style.zIndex = '3';
+  fromEl.style.zIndex = '2';
+
+  // Show incoming, set start clip
+  toEl.classList.add('is-active');
+  gsap.set(toEl, { clipPath: `circle(0% at ${origin})` });
+
+  // PHASE 1: iris-reveal the incoming page
+  gsap.to(toEl, {
+    clipPath: `circle(170% at ${origin})`,
+    duration: 0.95,
+    ease: 'power4.inOut',
+    onComplete: () => {
+      // Clean up
+      gsap.set(toEl, { clipPath: 'none', zIndex: '' });
+      fromEl.classList.remove('is-active');
+      gsap.set(fromEl, { zIndex: '' });
+      isTransitioning = false;
+    }
   });
 
-  // Reveal target content mid-transition for that "two pages visible" beat
-  setTimeout(() => revealPage(toEl), 250);
-
-  // Cleanup after transition
-  setTimeout(() => {
-    document.querySelectorAll('.page').forEach(p => {
-      if (!p.classList.contains('is-active')) {
-        p.style.transition = 'none';
-        p.style.transform = '';
-        void p.offsetWidth;
-        p.style.transition = '';
-      }
-    });
-    isTransitioning = false;
-  }, 1200);
+  // Reveal page content with stagger slightly after mask starts opening
+  setTimeout(() => revealPage(toEl), 280);
 
   currentPage = target;
   document.querySelectorAll('[data-nav]').forEach(a => {
@@ -936,11 +957,10 @@ let shaderTheme = 0.0, shaderThemeTarget = 0.0;
 (function setMainBg(){
   const el = document.getElementById('bg-image');
   if (!el) return;
-  const src = pickBg();
   const img = new Image();
-  img.onload = () => { el.style.backgroundImage = `url("${src}")`; };
+  img.onload = () => { el.style.backgroundImage = `url("${BG_SRC}")`; };
   img.onerror = () => { el.style.background = 'var(--bg)'; };
-  img.src = src;
+  img.src = BG_SRC;
 })();
 function _smoothTheme(){ shaderTheme += (shaderThemeTarget - shaderTheme) * .05; requestAnimationFrame(_smoothTheme); }
 requestAnimationFrame(_smoothTheme);
