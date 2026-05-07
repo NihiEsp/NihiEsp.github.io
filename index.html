@@ -134,7 +134,6 @@ body.site-loaded { overflow: hidden; }
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  will-change: clip-path;
 }
 .page.is-active {
   opacity: 1;
@@ -144,6 +143,11 @@ body.site-loaded { overflow: hidden; }
 .page-inner {
   position: absolute; inset: 0;
   overflow: hidden;
+  padding: 110px 0 0;
+}
+.page-inner.page-inner-about {
+  overflow: visible;
+  position: absolute; inset: 0;
   padding: 110px 0 0;
 }
 .page-inner::-webkit-scrollbar { display: none; width: 0; height: 0; }
@@ -176,30 +180,63 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 24px 48
 .hero-title { font-family: 'Cormorant Garamond', serif; font-size: clamp(70px, 13vw, 190px); font-weight: 300; line-height: 0.9; letter-spacing: -0.02em; }
 .hero-tag { font-size: clamp(13px, 1.8vw, 17px); color: var(--text-muted); letter-spacing: 0.2em; text-transform: uppercase; margin-top: 14px; font-weight: 300; }
 
-.marquee-wrapper { width: 100%; overflow: hidden; padding: 20px 0; background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); position: relative; display: flex; flex-shrink: 0; }
+.marquee-wrapper {
+  width: 100%;
+  overflow: hidden;
+  padding: 18px 0;
+  background: rgba(4, 4, 6, 0.88);
+  backdrop-filter: blur(24px) saturate(1.2);
+  -webkit-backdrop-filter: blur(24px) saturate(1.2);
+  border-top: 1px solid rgba(255,255,255,0.10);
+  position: relative;
+  display: flex;
+  flex-shrink: 0;
+}
+[data-theme="light"] .marquee-wrapper {
+  background: rgba(242, 240, 236, 0.90);
+  border-top: 1px solid rgba(0,0,0,0.10);
+}
 .marquee-track { display: flex; width: max-content; animation: scroll-marquee 30s linear infinite; will-change: transform; }
 .marquee-track:hover { animation-play-state: paused; }
-.marquee-img { height: 220px; width: auto; object-fit: cover; border-radius: 12px; filter: grayscale(80%) contrast(1.2); transition: filter 0.4s; flex-shrink: 0; margin-right: 16px; }
+.marquee-img { height: 180px; width: auto; object-fit: cover; border-radius: 10px; filter: grayscale(60%) contrast(1.1); transition: filter 0.4s; flex-shrink: 0; margin-right: 14px; }
 .marquee-img:hover { filter: grayscale(0%) contrast(1); }
+
+/* Currently page: flex column so marquee pins to bottom */
+.page-inner-currently {
+  position: absolute; inset: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 100px 0 0;
+  overflow: hidden;
+}
+.page-inner-currently .section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-bottom: 16px;
+}
 
 @keyframes scroll-marquee {
   0% { transform: translateX(0); }
   100% { transform: translateX(-50%); }
 }
 
-/* ── Mask Transition Overlay ── */
-#mask-overlay {
-  position: fixed; inset: 0; z-index: 9000;
+/* ── Iris Transition Overlay ── */
+#iris-overlay {
+  position: fixed; inset: 0; z-index: 9990;
   pointer-events: none;
-  background: var(--bg);
+  background: #050505;
+  /* clip-path is driven entirely by GSAP */
   clip-path: circle(0% at 50% 50%);
   will-change: clip-path;
 }
+[data-theme="light"] #iris-overlay { background: #f7f5f1; }
 
 /* ── Compact sections for no-scroll ── */
 .section { padding: 40px 48px 24px; max-width: 1400px; margin: 0 auto; }
 .sec-header { margin-bottom: 28px; text-align: center; }
-.bento { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; grid-auto-rows: 200px; }
+.bento { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; grid-template-rows: 180px auto; overflow: visible; }
 .bento-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--bento-rad); padding: 24px; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); display: flex; flex-direction: column; justify-content: center; transition: transform 0.4s var(--ease), background 0.4s var(--ease); overflow: hidden; position: relative; }
 .bento-card:hover { transform: translateY(-4px); background: var(--surface-hover); }
 .bento-h { font-family: 'Cormorant Garamond', serif; font-size: 34px; font-weight: 300; line-height: 1.1; margin-bottom: 10px; }
@@ -603,13 +640,9 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 24px 48
     <p class="hero-tag">I make things.</p>
   </div>
 </section>
-
-<div class="marquee-wrapper gs-fade">
-  <div class="marquee-track" id="marquee-track"></div>
-</div>
 </div></section>
 
-<section class="page" data-page="currently"><div class="page-inner">
+<section class="page" data-page="currently"><div class="page-inner page-inner-currently">
 <section class="section" id="currently">
   <div class="sec-header gs-fade-up">
     <div class="sec-sub">Right Now</div>
@@ -640,9 +673,12 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 24px 48
     </div>
   </div>
 </section>
+<div class="marquee-wrapper gs-fade">
+  <div class="marquee-track" id="marquee-track"></div>
+</div>
 </div></section>
 
-<section class="page" data-page="about"><div class="page-inner">
+<section class="page" data-page="about"><div class="page-inner page-inner-about">
 <section class="section" id="about">
   <div class="sec-header gs-fade-up">
     <div class="sec-sub">About Me</div>
@@ -882,18 +918,19 @@ function revealPage(pageEl) {
   );
 }
 
-// ---- Epic mask / clip-path page transition ----
+// ---- Two-phase iris overlay page transition ----
 const PAGES = ['home','currently','about','contact'];
 let currentPage = 'home', isTransitioning = false;
+const irisEl = document.getElementById('iris-overlay');
 
-// Transition origin patterns — rotated between pages for variety
-const MASK_ORIGINS = [
-  '50% 50%',   // center
-  '0% 100%',   // bottom-left
-  '100% 0%',   // top-right
-  '100% 100%', // bottom-right
+const IRIS_ORIGINS = [
+  '50% 50%',    // center
+  '0% 100%',    // bottom-left corner
+  '100% 0%',    // top-right corner
+  '100% 100%',  // bottom-right corner
+  '0% 0%',      // top-left corner
 ];
-let maskOriginIdx = 0;
+let irisIdx = 0;
 
 function navigateTo(target){
   if (isTransitioning || target === currentPage) return;
@@ -905,40 +942,43 @@ function navigateTo(target){
   const toEl   = document.querySelector(`.page[data-page="${target}"]`);
   if (!fromEl || !toEl) { isTransitioning = false; return; }
 
-  // Pick an origin for this reveal
-  const origin = MASK_ORIGINS[maskOriginIdx % MASK_ORIGINS.length];
-  maskOriginIdx++;
+  const origin = IRIS_ORIGINS[irisIdx++ % IRIS_ORIGINS.length];
 
-  // Layer incoming on top
-  toEl.style.zIndex = '3';
-  fromEl.style.zIndex = '2';
+  // ── Phase 1: Iris CLOSES — overlay expands from origin, covering screen ──
+  gsap.fromTo(irisEl,
+    { clipPath: `circle(0% at ${origin})` },
+    {
+      clipPath: `circle(160% at ${origin})`,
+      duration: 0.42,
+      ease: 'power3.in',
+      onComplete: () => {
+        // Instant page swap while hidden under overlay
+        fromEl.classList.remove('is-active');
+        toEl.classList.add('is-active');
+        revealPage(toEl);
 
-  // Show incoming, set start clip
-  toEl.classList.add('is-active');
-  gsap.set(toEl, { clipPath: `circle(0% at ${origin})` });
+        // Update nav
+        currentPage = target;
+        document.querySelectorAll('[data-nav]').forEach(a =>
+          a.classList.toggle('is-current', a.dataset.nav === target)
+        );
 
-  // PHASE 1: iris-reveal the incoming page
-  gsap.to(toEl, {
-    clipPath: `circle(170% at ${origin})`,
-    duration: 0.95,
-    ease: 'power4.inOut',
-    onComplete: () => {
-      // Clean up
-      gsap.set(toEl, { clipPath: 'none', zIndex: '' });
-      fromEl.classList.remove('is-active');
-      gsap.set(fromEl, { zIndex: '' });
-      isTransitioning = false;
+        // ── Phase 2: Iris OPENS — overlay shrinks, revealing new page ──
+        gsap.fromTo(irisEl,
+          { clipPath: `circle(160% at ${origin})` },
+          {
+            clipPath: `circle(0% at ${origin})`,
+            duration: 0.55,
+            ease: 'power3.out',
+            delay: 0.04,
+            onComplete: () => { isTransitioning = false; }
+          }
+        );
+      }
     }
-  });
-
-  // Reveal page content with stagger slightly after mask starts opening
-  setTimeout(() => revealPage(toEl), 280);
-
-  currentPage = target;
-  document.querySelectorAll('[data-nav]').forEach(a => {
-    a.classList.toggle('is-current', a.dataset.nav === target);
-  });
+  );
 }
+
 document.addEventListener('click', (e) => {
   const link = e.target.closest('[data-nav]');
   if (!link) return;
@@ -1324,5 +1364,7 @@ document.querySelectorAll('.card').forEach(card=>{
   });
 });
 </script>
+<div id="iris-overlay"></div>
+
 </body>
 </html>
