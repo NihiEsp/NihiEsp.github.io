@@ -38,7 +38,8 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   overflow: hidden;
 }
 #enter-screen.dismissed { opacity: 0; pointer-events: none; }
-#enter-canvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; }
+#enter-bg { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; background-size: cover; background-position: center; background-repeat: no-repeat; filter: brightness(0.55) saturate(1.05); }
+#enter-bg::after { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at center, transparent 0%, rgba(5,5,5,0.55) 100%); }
 
 .enter-content {
   position: relative; z-index: 1;
@@ -114,7 +115,54 @@ body.no-scroll { overflow: hidden; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
 * { scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
 
-#shader-canvas { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; opacity: 0.8; transition: opacity 0.6s ease; }
+#bg-image { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; background-size: cover; background-position: center; background-repeat: no-repeat; transition: opacity 0.6s ease, filter 0.6s ease; }
+[data-theme="dark"] #bg-image { filter: brightness(0.45) saturate(1.05); }
+[data-theme="light"] #bg-image { filter: brightness(0.95) saturate(0.95); }
+#bg-image::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(5,5,5,0.35), rgba(5,5,5,0.55)); pointer-events: none; transition: background 0.6s ease; }
+[data-theme="light"] #bg-image::after { background: linear-gradient(to bottom, rgba(247,245,241,0.55), rgba(247,245,241,0.75)); }
+
+html, body { height: 100%; }
+body.site-loaded { overflow: hidden; }
+
+#page-stage {
+  position: fixed; inset: 0; overflow: hidden;
+  z-index: 1;
+}
+.page {
+  position: absolute; inset: 0;
+  overflow: hidden;
+  transform: translate3d(100%, 0, 0);
+  transition: transform 1.1s cubic-bezier(0.76, 0, 0.24, 1);
+  will-change: transform;
+  pointer-events: none;
+}
+.page.is-active {
+  transform: translate3d(0, 0, 0);
+  pointer-events: auto;
+}
+.page-inner {
+  position: absolute; inset: 0;
+  overflow-y: auto; overflow-x: hidden;
+  padding: 110px 0 80px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.page-inner::-webkit-scrollbar { display: none; width: 0; height: 0; }
+.page-inner-home {
+  display: flex; flex-direction: column; justify-content: center;
+  padding: 110px 0 40px;
+  gap: 24px;
+}
+.page-inner-contact {
+  display: flex; flex-direction: column; justify-content: center;
+  padding: 110px 0 0;
+}
+.nav-links a.is-current { color: var(--text); }
+.nav-links a.is-current::after {
+  content: ''; display: block; height: 1px; background: var(--text);
+  margin-top: 4px; opacity: 0.6;
+}
+.nav-logo { cursor: pointer; }
 
 nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 24px 48px; display: flex; justify-content: space-between; align-items: center; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); background: linear-gradient(to bottom, var(--bg) 0%, transparent 100%); }
 .nav-logo { font-family: 'Cormorant Garamond', serif; font-size: 24px; font-weight: 600; letter-spacing: 0.1em; }
@@ -499,7 +547,7 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 24px 48
 <body class="no-scroll">
 
 <div id="enter-screen">
-  <canvas id="enter-canvas"></canvas>
+  <div id="enter-bg"></div>
   <div class="enter-line"  style="left:50%"></div>
   <div class="enter-line-h" style="top:50%"></div>
   <div class="enter-content">
@@ -517,16 +565,21 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 24px 48
 </div>
 
 <main id="main-content">
-<canvas id="shader-canvas"></canvas>
+<div id="bg-image"></div>
 
 <nav>
   <div class="nav-logo gs-reveal">Nihi</div>
   <ul class="nav-links gs-reveal">
-    <li><a href="#about">About</a></li>
-    <li><a href="#contact">Contact</a></li>
+    <li><a href="#home" data-nav="home" class="is-current">Home</a></li>
+    <li><a href="#currently" data-nav="currently">Currently</a></li>
+    <li><a href="#about" data-nav="about">About</a></li>
+    <li><a href="#contact" data-nav="contact">Contact</a></li>
   </ul>
 </nav>
 
+<div id="page-stage">
+
+<section class="page is-active" data-page="home"><div class="page-inner page-inner-home">
 <section class="hero">
   <div class="hero-content">
     <h1 class="hero-title">NIHI</h1>
@@ -537,7 +590,9 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 24px 48
 <div class="marquee-wrapper gs-fade">
   <div class="marquee-track" id="marquee-track"></div>
 </div>
+</div></section>
 
+<section class="page" data-page="currently"><div class="page-inner">
 <section class="section" id="currently">
   <div class="sec-header gs-fade-up">
     <div class="sec-sub">Right Now</div>
@@ -564,11 +619,13 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 24px 48
       <div class="curr-icon">✦</div>
       <div class="curr-label">Working on</div>
       <div class="curr-value" id="curr-working">—</div>
-      <div class="curr-sub" id="curr-working-sub"></div>
+          <div class="curr-sub" id="curr-working-sub"></div>
     </div>
   </div>
 </section>
+</div></section>
 
+<section class="page" data-page="about"><div class="page-inner">
 <section class="section" id="about">
   <div class="sec-header gs-fade-up">
     <div class="sec-sub">About Me</div>
@@ -608,7 +665,9 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 24px 48
 
   </div>
 </section>
+</div></section>
 
+<section class="page" data-page="contact"><div class="page-inner page-inner-contact">
 <section class="section" id="contact">
   <div class="contact-wrap gs-fade-up">
     <a href="/cdn-cgi/l/email-protection#5a3433323336742f29743435353e363f6b1a2a28352e353474373f" class="contact-link">Find me ↗</a>
@@ -640,6 +699,9 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 24px 48
     &copy; <span id="footer-year"></span> nihi &nbsp;·&nbsp; all rights reserved
   </p>
 </footer>
+</div></section>
+
+</div><!-- /#page-stage -->
 
 <div id="video-lightbox" onclick="closeVideoLightbox(event)">
   <div class="vlb-panel">
@@ -699,9 +761,25 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 24px 48
 </div>
 
 <script>
-(function() {
+const BG_IMAGES = [
+  '/background/1.jpg','/background/2.jpg','/background/3.jpg',
+  '/background/4.jpg','/background/5.jpg','/background/6.jpg'
+];
+function pickBg(){ return BG_IMAGES[Math.floor(Math.random()*BG_IMAGES.length)]; }
+(function setEnterBg(){
+  const el = document.getElementById('enter-bg');
+  if (!el) return;
+  const src = pickBg();
+  const img = new Image();
+  img.onload = () => { el.style.backgroundImage = `url("${src}")`; };
+  img.onerror = () => { el.style.background = '#0a0a0a'; };
+  img.src = src;
+  window._stopEnterShader = () => {};
+})();
+(function legacyShaderStub() {
+  if (false) {
   const ec = document.getElementById('enter-canvas');
-  const eg = ec.getContext('webgl');
+  const eg = ec ? ec.getContext('webgl') : null;
   if (!eg) return;
   const vs = `attribute vec4 p; void main(){ gl_Position=p; }`;
   const fs = `
@@ -749,6 +827,7 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 24px 48
   function renderEnter(t){ eg.uniform2f(uRes,ec.width,ec.height); eg.uniform1f(uT,t*.001); eg.drawArrays(eg.TRIANGLE_STRIP,0,4); enterRafId=requestAnimationFrame(renderEnter); }
   enterRafId=requestAnimationFrame(renderEnter);
   window._stopEnterShader=()=>cancelAnimationFrame(enterRafId);
+  }
 })();
 
 window.addEventListener('DOMContentLoaded', () => {
@@ -771,22 +850,105 @@ for (let i = 1; i <= 12; i++) {
 }
 trackContainer.innerHTML = imagesHTML + imagesHTML;
 
-gsap.registerPlugin(ScrollTrigger);
 function initAnimations() {
   gsap.fromTo(".hero-title", { y: 50, opacity: 0, scale: 0.95 }, { y: 0, opacity: 1, scale: 1, duration: 1.5, ease: "power4.out", delay: 0.2 });
   gsap.fromTo(".hero-tag",   { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 1.5, ease: "power3.out", delay: 0.4 });
-  gsap.fromTo(".gs-reveal",  { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 1, stagger: 0.1, ease: "power2.out", delay: 0.6 });
-  gsap.utils.toArray('.gs-fade-up').forEach(elem => {
-    gsap.fromTo(elem, { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 1.2, ease: "power3.out", scrollTrigger: { trigger: elem, start: "top 85%", toggleActions: "play none none reverse" }});
-  });
-  gsap.fromTo(".gs-bento", { y: 60, opacity: 0 }, { y: 0, opacity: 1, duration: 1, stagger: 0.15, ease: "power3.out", scrollTrigger: { trigger: ".bento", start: "top 85%" }});
-  gsap.to(".marquee-wrapper", { yPercent: 10, ease: "none", scrollTrigger: { trigger: ".marquee-wrapper", start: "top bottom", end: "bottom top", scrub: true }});
+  gsap.fromTo(".nav-logo, .nav-links",  { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 1, stagger: 0.1, ease: "power2.out", delay: 0.6 });
+  gsap.fromTo(".theme-toggle, .music-trigger", { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 1, stagger: 0.1, ease: "power2.out", delay: 0.8 });
+  // Reveal home page contents
+  revealPage(document.querySelector('.page[data-page="home"]'));
+}
+function revealPage(pageEl) {
+  if (!pageEl) return;
+  const items = pageEl.querySelectorAll('.gs-fade-up, .gs-bento, .gs-fade');
+  if (!items.length) return;
+  gsap.fromTo(items,
+    { y: 30, opacity: 0 },
+    { y: 0, opacity: 1, duration: 0.9, stagger: 0.08, ease: "power3.out", delay: 0.15, overwrite: 'auto' }
+  );
 }
 
-const canvas = document.getElementById('shader-canvas');
-const gl = canvas.getContext('webgl');
-let shaderTheme = 0.0, shaderThemeTarget = 0.0, uTheme = null;
-if (gl) {
+// ---- Parallel page transition ----
+const PAGES = ['home','currently','about','contact'];
+let currentPage = 'home', isTransitioning = false;
+function navigateTo(target){
+  if (isTransitioning || target === currentPage) return;
+  const fromIdx = PAGES.indexOf(currentPage);
+  const toIdx   = PAGES.indexOf(target);
+  if (toIdx === -1) return;
+  const dir = toIdx > fromIdx ? 1 : -1; // 1 = forward; new page enters from right
+  const fromEl = document.querySelector(`.page[data-page="${currentPage}"]`);
+  const toEl   = document.querySelector(`.page[data-page="${target}"]`);
+  if (!fromEl || !toEl) return;
+  isTransitioning = true;
+
+  // Park incoming offscreen instantly on the correct side
+  toEl.style.transition = 'none';
+  toEl.style.transform = `translate3d(${dir * 100}%, 0, 0)`;
+  toEl.classList.remove('is-active');
+  void toEl.offsetWidth; // reflow
+  toEl.style.transition = '';
+
+  // Animate both in parallel — outgoing slides off, incoming slides in
+  requestAnimationFrame(() => {
+    fromEl.classList.remove('is-active');
+    fromEl.style.transform = `translate3d(${-dir * 100}%, 0, 0)`;
+    toEl.style.transform = 'translate3d(0,0,0)';
+    toEl.classList.add('is-active');
+  });
+
+  // Reveal target content mid-transition for that "two pages visible" beat
+  setTimeout(() => revealPage(toEl), 250);
+
+  // Cleanup after transition
+  setTimeout(() => {
+    document.querySelectorAll('.page').forEach(p => {
+      if (!p.classList.contains('is-active')) {
+        p.style.transition = 'none';
+        p.style.transform = '';
+        void p.offsetWidth;
+        p.style.transition = '';
+      }
+    });
+    isTransitioning = false;
+  }, 1200);
+
+  currentPage = target;
+  document.querySelectorAll('[data-nav]').forEach(a => {
+    a.classList.toggle('is-current', a.dataset.nav === target);
+  });
+}
+document.addEventListener('click', (e) => {
+  const link = e.target.closest('[data-nav]');
+  if (!link) return;
+  e.preventDefault();
+  navigateTo(link.dataset.nav);
+});
+document.querySelector('.nav-logo')?.addEventListener('click', () => navigateTo('home'));
+document.addEventListener('keydown', (e) => {
+  if (isTransitioning) return;
+  const idx = PAGES.indexOf(currentPage);
+  if (e.key === 'ArrowRight' && idx < PAGES.length - 1) navigateTo(PAGES[idx + 1]);
+  if (e.key === 'ArrowLeft'  && idx > 0)                navigateTo(PAGES[idx - 1]);
+});
+
+let shaderTheme = 0.0, shaderThemeTarget = 0.0;
+(function setMainBg(){
+  const el = document.getElementById('bg-image');
+  if (!el) return;
+  const src = pickBg();
+  const img = new Image();
+  img.onload = () => { el.style.backgroundImage = `url("${src}")`; };
+  img.onerror = () => { el.style.background = 'var(--bg)'; };
+  img.src = src;
+})();
+function _smoothTheme(){ shaderTheme += (shaderThemeTarget - shaderTheme) * .05; requestAnimationFrame(_smoothTheme); }
+requestAnimationFrame(_smoothTheme);
+(function legacyMainShader(){ if (true) return;
+  const canvas = document.getElementById('shader-canvas');
+  const gl = canvas ? canvas.getContext('webgl') : null;
+  let uTheme = null;
+  if (!gl) return;
   const vsSource = `attribute vec4 aVertexPosition; void main() { gl_Position = aVertexPosition; }`;
   const fsSource = `
     precision highp float;
@@ -834,7 +996,7 @@ if (gl) {
   resizeCanvas(); window.addEventListener('resize',resizeCanvas);
   function render(time){ gl.uniform2f(uResolution,canvas.width,canvas.height); gl.uniform1f(uTime,time*.001); shaderTheme+=(shaderThemeTarget-shaderTheme)*.05; gl.uniform1f(uTheme,shaderTheme); gl.drawArrays(gl.TRIANGLE_STRIP,0,4); requestAnimationFrame(render); }
   requestAnimationFrame(render);
-}
+})();
 
 function toggleTheme() {
   const html=document.documentElement; const isDark=html.getAttribute('data-theme')==='dark';
