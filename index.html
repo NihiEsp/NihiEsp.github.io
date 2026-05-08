@@ -897,7 +897,6 @@ let imagesHTML = '';
 for (let i = 1; i <= 12; i++) {
   imagesHTML += `<img src="pictures/picture1.png" alt="visual ${i}" class="marquee-img" loading="lazy" onerror="this.style.display='none'">`;
 }
-// Duplicate exactly once — animation goes -50% for perfect loop
 trackContainer.innerHTML = imagesHTML + imagesHTML;
 
 function initAnimations() {
@@ -905,7 +904,6 @@ function initAnimations() {
   gsap.fromTo(".hero-tag",   { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 1.5, ease: "power3.out", delay: 0.4 });
   gsap.fromTo(".nav-logo, .nav-links",  { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 1, stagger: 0.1, ease: "power2.out", delay: 0.6 });
   gsap.fromTo(".theme-toggle, .music-trigger", { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 1, stagger: 0.1, ease: "power2.out", delay: 0.8 });
-  // Reveal home page contents
   revealPage(document.querySelector('.page[data-page="home"]'));
 }
 function revealPage(pageEl) {
@@ -918,7 +916,6 @@ function revealPage(pageEl) {
   );
 }
 
-// ---- Slide + depth page transition ----
 const PAGES = ['home','currently','about','contact'];
 let currentPage = 'home', isTransitioning = false;
 
@@ -934,7 +931,6 @@ function navigateTo(target){
   const toEl   = document.querySelector(`.page[data-page="${target}"]`);
   if (!fromEl || !toEl) { isTransitioning = false; return; }
 
-  // Park incoming off-screen then make visible
   gsap.set(toEl, { x: `${dir * 100}%`, scale: 0.94 });
   toEl.classList.add('is-active');
 
@@ -947,7 +943,7 @@ function navigateTo(target){
     }
   });
 
-  // Outgoing: slide away + shrink slightly
+
   tl.to(fromEl, {
     x: `${-dir * 100}%`,
     scale: 0.94,
@@ -955,7 +951,7 @@ function navigateTo(target){
     ease: 'expo.inOut',
   }, 0);
 
-  // Incoming: slide in + grow to full size simultaneously
+  
   tl.to(toEl, {
     x: '0%',
     scale: 1,
