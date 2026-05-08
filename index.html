@@ -222,16 +222,7 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 24px 48
   100% { transform: translateX(-50%); }
 }
 
-/* ── Iris Transition Overlay ── */
-#iris-overlay {
-  position: fixed; inset: 0; z-index: 9990;
-  pointer-events: none;
-  background: #050505;
-  /* clip-path is driven entirely by GSAP */
-  clip-path: circle(0% at 50% 50%);
-  will-change: clip-path;
-}
-[data-theme="light"] #iris-overlay { background: #f7f5f1; }
+/* ── Page transitions handled by GSAP ── */
 
 /* ── Compact sections for no-scroll ── */
 .section { padding: 40px 48px 24px; max-width: 1400px; margin: 0 auto; }
@@ -918,64 +909,56 @@ function revealPage(pageEl) {
   );
 }
 
-// ---- Two-phase iris overlay page transition ----
+// ---- Slide + depth page transition ----
 const PAGES = ['home','currently','about','contact'];
 let currentPage = 'home', isTransitioning = false;
-const irisEl = document.getElementById('iris-overlay');
-
-const IRIS_ORIGINS = [
-  '50% 50%',    // center
-  '0% 100%',    // bottom-left corner
-  '100% 0%',    // top-right corner
-  '100% 100%',  // bottom-right corner
-  '0% 0%',      // top-left corner
-];
-let irisIdx = 0;
 
 function navigateTo(target){
   if (isTransitioning || target === currentPage) return;
-  const toIdx = PAGES.indexOf(target);
+  const fromIdx = PAGES.indexOf(currentPage);
+  const toIdx   = PAGES.indexOf(target);
   if (toIdx === -1) return;
+  const dir = toIdx > fromIdx ? 1 : -1;
   isTransitioning = true;
 
   const fromEl = document.querySelector(`.page[data-page="${currentPage}"]`);
   const toEl   = document.querySelector(`.page[data-page="${target}"]`);
   if (!fromEl || !toEl) { isTransitioning = false; return; }
 
-  const origin = IRIS_ORIGINS[irisIdx++ % IRIS_ORIGINS.length];
+  // Park incoming off-screen then make visible
+  gsap.set(toEl, { x: `${dir * 100}%`, scale: 0.94 });
+  toEl.classList.add('is-active');
 
-  // ── Phase 1: Iris CLOSES — overlay expands from origin, covering screen ──
-  gsap.fromTo(irisEl,
-    { clipPath: `circle(0% at ${origin})` },
-    {
-      clipPath: `circle(160% at ${origin})`,
-      duration: 0.42,
-      ease: 'power3.in',
-      onComplete: () => {
-        // Instant page swap while hidden under overlay
-        fromEl.classList.remove('is-active');
-        toEl.classList.add('is-active');
-        revealPage(toEl);
-
-        // Update nav
-        currentPage = target;
-        document.querySelectorAll('[data-nav]').forEach(a =>
-          a.classList.toggle('is-current', a.dataset.nav === target)
-        );
-
-        // ── Phase 2: Iris OPENS — overlay shrinks, revealing new page ──
-        gsap.fromTo(irisEl,
-          { clipPath: `circle(160% at ${origin})` },
-          {
-            clipPath: `circle(0% at ${origin})`,
-            duration: 0.55,
-            ease: 'power3.out',
-            delay: 0.04,
-            onComplete: () => { isTransitioning = false; }
-          }
-        );
-      }
+  const tl = gsap.timeline({
+    onComplete: () => {
+      fromEl.classList.remove('is-active');
+      gsap.set(fromEl, { clearProps: 'all' });
+      gsap.set(toEl,   { clearProps: 'x,scale' });
+      isTransitioning = false;
     }
+  });
+
+  // Outgoing: slide away + shrink slightly
+  tl.to(fromEl, {
+    x: `${-dir * 100}%`,
+    scale: 0.94,
+    duration: 1.05,
+    ease: 'expo.inOut',
+  }, 0);
+
+  // Incoming: slide in + grow to full size simultaneously
+  tl.to(toEl, {
+    x: '0%',
+    scale: 1,
+    duration: 1.05,
+    ease: 'expo.inOut',
+  }, 0);
+
+  setTimeout(() => revealPage(toEl), 380);
+
+  currentPage = target;
+  document.querySelectorAll('[data-nav]').forEach(a =>
+    a.classList.toggle('is-current', a.dataset.nav === target)
   );
 }
 
@@ -1364,7 +1347,5 @@ document.querySelectorAll('.card').forEach(card=>{
   });
 });
 </script>
-<div id="iris-overlay"></div>
-
 </body>
 </html>
