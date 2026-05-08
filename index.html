@@ -1089,73 +1089,23 @@ let vizReady=false,vizGl=null,vizProg=null,vizTex=null;
 let uTimeLoc,uAudioLoc,uThemeLoc2,uResLoc2;
 const VIZ_VS=`attribute vec2 a_pos; void main(){gl_Position=vec4(a_pos,0.,1.);}`;
 const VIZ_FS=`
-  precision highp float;
+  precision mediump float;
   uniform vec2 u_res; uniform float u_time; uniform float u_theme;
   uniform sampler2D u_audio;
-  #define PI 3.14159265359
-  #define TAU 6.28318530718
-  float sampleF(float t){return texture2D(u_audio,vec2(clamp(t,.01,.99),.5)).r;}
-  float lineSDF(float d,float r,float th){return smoothstep(th,0.,abs(d-r));}
-  float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
   void main(){
-    vec2 uv=(gl_FragCoord.xy-u_res*.5)/min(u_res.x,u_res.y);
-    float dist=length(uv),angle=atan(uv.y,uv.x);
-    float t=mod(angle+PI,TAU)/TAU;
-    float f=mix(sampleF(t),sampleF(1.-t),.5);
-    float bass=sampleF(.02)*.6+sampleF(.98)*.4;
-    float mid=sampleF(.25)*.5+sampleF(.5)*.5;
-    float hi=sampleF(.75)*.4+sampleF(.9)*.6;
-    float lt=u_theme;
-    vec3 hotPink=mix(vec3(1.,.08,.55),vec3(.95,.02,.50),lt);
-    vec3 cyan=mix(vec3(0.,.95,.95),vec3(0.,.85,.88),lt);
-    vec3 yellow=mix(vec3(1.,.95,0.),vec3(.92,.88,0.),lt);
-    vec3 lime=mix(vec3(.4,1.,.2),vec3(.30,.88,.18),lt);
-    vec3 bgBase=mix(vec3(.04,.03,.06),vec3(.97,.95,.90),lt);
-    float spin=u_time*.4+bass*.8,swAngle=mod(angle+spin,TAU);
-    float segment=floor(swAngle/(TAU/8.)),stripe=mod(segment,4.);
-    vec3 stripeCol;
-    if(stripe<1.)stripeCol=hotPink;
-    else if(stripe<2.)stripeCol=cyan;
-    else if(stripe<3.)stripeCol=yellow;
-    else stripeCol=lime;
-    float bandInner=.34,bandOuter=.42+mid*.05;
-    float inBand=smoothstep(bandInner,bandInner+.02,dist)*smoothstep(bandOuter+.02,bandOuter,dist);
-    vec3 bgLayer=mix(bgBase,stripeCol*.85,inBand);
-    float burstN=24.,burstA=mod(swAngle*burstN/TAU,1.);
-    float burst=smoothstep(.04,0.,abs(burstA-.5))*smoothstep(.52,.48,dist)*smoothstep(0.,.12,dist)*(.25+hi*.4);
-    bgLayer+=mix(vec3(1.),vec3(.05),lt)*burst*.6;
-    float starGlow=0.;
-    for(int i=0;i<6;i++){
-      float fi=float(i),spd=.12+fi*.07;
-      vec2 sp=vec2(cos(u_time*spd+fi*1.3)*(.22+fi*.02),sin(u_time*spd*1.4+fi*.9)*(.22+fi*.02));
-      vec2 ru=uv-sp;
-      float star4=min(max(abs(ru.x)*3.,abs(ru.y)),max(abs(ru.y)*3.,abs(ru.x)));
-      float sz=.012+bass*.008;
-      starGlow+=smoothstep(sz,0.,star4);
-    }
-    vec3 starCol=mix(yellow,hotPink,sin(u_time*1.3)*.5+.5);
-    bgLayer+=starCol*clamp(starGlow,0.,1.)*1.5;
-    float gridS=.07+bass*.02;
-    vec2 grid=floor(uv/gridS);
-    float checker=mod(grid.x+grid.y,2.);
-    vec3 checkA=mix(hotPink*.6,vec3(.9,.85,.8),lt),checkB=mix(vec3(.05,.04,.08),vec3(.15,.1,.2),lt);
-    vec3 checkCol=mix(checkB,checkA,checker);
-    float inDisc=smoothstep(.13+bass*.03,.10+bass*.03,dist);
-    bgLayer=mix(bgLayer,checkCol,inDisc*.95);
-    float baseR=.32,ring=lineSDF(dist,baseR+f*.13,.014);
-    float halo=lineSDF(dist,baseR+f*.13+.02,.022)*f*.9;
-    float guide=lineSDF(dist,baseR*.65,.003)*.3;
-    float dotP=lineSDF(dist,0.,.03*bass)*bass*.9;
-    vec3 ringCol=mix(vec3(1.),vec3(.05),lt);
-    vec3 haloCol=mix(cyan,hotPink,sin(u_time*.7)*.5+.5);
-    vec3 ringLayer=ringCol*(ring+guide+dotP)+haloCol*halo;
-    float ringMask=clamp(ring+guide+dotP+halo,0.,1.);
-    vec3 col=mix(bgLayer,ringLayer,ringMask);
-    float vig=1.-smoothstep(.38,.50,dist);
-    col*=vig;
-    float alpha=vig*smoothstep(.48,.40,dist);
-    alpha=max(alpha,ringMask*vig);
-    gl_FragColor=vec4(col,alpha);
+    vec2 uv=gl_FragCoord.xy/u_res;
+    float numBars=64.;
+    float barIdx=floor(uv.x*numBars);
+    float barFrac=fract(uv.x*numBars);
+    float t=(barIdx+.5)/numBars;
+    float freq=texture2D(u_audio,vec2(t*.78+.01,.5)).r;
+    float gap=step(.88,barFrac);
+    float bar=step(1.-uv.y,freq*.92)*(1.-gap);
+    vec3 barCol=mix(vec3(.96,.94,.91),vec3(.10,.09,.12),u_theme);
+    vec3 bg=mix(vec3(.04,.03,.06),vec3(.97,.95,.90),u_theme);
+    float brightness=.45+uv.y*.55;
+    vec3 col=mix(bg,barCol*brightness,bar);
+    gl_FragColor=vec4(col,1.);
   }`;
 
 function initVizGL(){
