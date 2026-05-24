@@ -1536,7 +1536,7 @@ function loadTrackMeta(track, index) {
         }
       }
     },
-    onError()
+    onError() {}
   });
 }
 
@@ -1655,9 +1655,9 @@ audioEl.addEventListener('ended', () => {
   musicState.elapsed = 0;
   selectTrack((musicState.currentTrack + 1) % TRACKS.length, true);
 });
-function startProgressTimer() 
-function stopProgressTimer()  
-function selectTrack(index, autoplay) 
+function startProgressTimer() {}
+function stopProgressTimer() {}
+function selectTrack(index, autoplay) {
   musicState.currentTrack = index;
   musicState.elapsed = 0;
   audioEl.src = TRACKS[index].src;
