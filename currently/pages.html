@@ -1,0 +1,113 @@
+<!--
+  currently/pages.html
+  ─────────────────────────────────────────────────────────────
+  One <section data-page="Name"> per navigation item.
+  • The data-page attribute becomes the nav label.
+  • Everything inside the section is the page content.
+  • Add, rename, or remove sections to change the site.
+  ─────────────────────────────────────────────────────────────
+-->
+
+<section data-page="Home">
+  <p class="page-label">NihiEsp</p>
+  <h1 class="page-heading">Creative<br>Studio</h1>
+  <p class="page-sub">
+    Minimal by design.<br>
+    Precise by nature.
+  </p>
+</section>
+
+
+<section data-page="About">
+  <p class="page-label">About</p>
+  <h2 class="page-heading">We make<br>things matter.</h2>
+  <p class="page-body">
+    Small team. Sharp attention to detail.<br>
+    We work at the intersection of craft and technology,
+    building experiences that feel inevitable —
+    nothing added, nothing missing.
+  </p>
+</section>
+
+
+<section data-page="Portfolio">
+  <p class="page-label">Portfolio</p>
+  <h2 class="page-heading">Work</h2>
+  <div class="page-grid">
+    <div class="page-card">Identity — 2024</div>
+    <div class="page-card">Web — 2024</div>
+    <div class="page-card">Motion — 2023</div>
+    <div class="page-card">Print — 2023</div>
+    <div class="page-card">Brand — 2022</div>
+    <div class="page-card">Digital — 2022</div>
+  </div>
+</section>
+
+
+<section data-page="Pricing">
+  <p class="page-label">Pricing</p>
+  <h2 class="page-heading">Simple rates.</h2>
+  <div class="page-tiers">
+
+    <div class="page-tier">
+      <div class="page-tier-name">Studio</div>
+      <div class="page-tier-price">€2k</div>
+      <ul class="page-tier-features">
+        <li>Brand identity</li>
+        <li>2 rounds of revisions</li>
+        <li>Source files included</li>
+      </ul>
+    </div>
+
+    <div class="page-tier">
+      <div class="page-tier-name">Web</div>
+      <div class="page-tier-price">€5k</div>
+      <ul class="page-tier-features">
+        <li>Design + development</li>
+        <li>CMS integration</li>
+        <li>3 months support</li>
+      </ul>
+    </div>
+
+    <div class="page-tier">
+      <div class="page-tier-name">Full</div>
+      <div class="page-tier-price">€9k</div>
+      <ul class="page-tier-features">
+        <li>Brand + web + motion</li>
+        <li>Unlimited revisions</li>
+        <li>1 year support</li>
+      </ul>
+    </div>
+
+  </div>
+</section>
+
+
+<section data-page="Contact">
+  <p class="page-label">Contact</p>
+  <h2 class="page-heading">Let's talk.</h2>
+  <form class="page-form" onsubmit="return false">
+
+    <div class="page-field">
+      <label for="cf-name">Name</label>
+      <input id="cf-name" type="text" placeholder="Your name" autocomplete="off" />
+    </div>
+
+    <div class="page-field">
+      <label for="cf-email">Email</label>
+      <input id="cf-email" type="email" placeholder="you@example.com" autocomplete="off" />
+    </div>
+
+    <div class="page-field">
+      <label for="cf-msg">Message</label>
+      <textarea id="cf-msg" rows="4" placeholder="Tell us about your project…"></textarea>
+    </div>
+
+    <div class="page-send" role="button" tabindex="0"
+         onclick="this.textContent='Sent ✦'"
+         onkeydown="if(event.key==='Enter'||event.key===' ')this.textContent='Sent ✦'">
+      Send →
+    </div>
+
+  </form>
+</section>
