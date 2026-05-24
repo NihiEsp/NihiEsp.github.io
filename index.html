@@ -1525,19 +1525,21 @@ const TRACKS = [
 ];
 function loadTrackMeta(track, index) {
   if (typeof jsmediatags === 'undefined') return;
-  jsmediatags.read(track.src, {
-    onSuccess(tag) {
-      const artist = tag.tags?.artist || tag.tags?.TPE1 || null;
-      if (artist) {
-        TRACKS[index].artist = artist;
-        if (musicState.currentTrack === index) {
-          musicArtist.textContent = artist;
-          buildPlaylist();
+  try {
+    jsmediatags.read(track.src, {
+      onSuccess(tag) {
+        const artist = tag.tags?.artist || tag.tags?.TPE1 || null;
+        if (artist) {
+          TRACKS[index].artist = artist;
+          if (musicState.currentTrack === index) {
+            musicArtist.textContent = artist;
+            buildPlaylist();
+          }
         }
-      }
-    },
-    onError() {}
-  });
+      },
+      onError() {}
+    });
+  } catch (e) {}
 }
 
 TRACKS.forEach((t, i) => {
