@@ -770,6 +770,219 @@
       flex-shrink: 0;
       font-weight: 300;
     }
+
+    /* ============================================================
+       CONTENT AREA
+    ============================================================ */
+    .content-area {
+      position: fixed;
+      top: var(--nav-height);
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: var(--bg);
+      transition: background-color 0.4s ease;
+      overflow: hidden;
+    }
+
+    .page-section {
+      position: absolute;
+      inset: 0;
+      padding: clamp(48px, 7vw, 104px) clamp(40px, 9vw, 128px);
+      overflow-y: auto;
+      scrollbar-width: none;
+      opacity: 0;
+      transform: translateY(16px);
+      transition: opacity 0.5s var(--easing-smooth),
+                  transform 0.5s var(--easing-smooth);
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .page-section::-webkit-scrollbar { display: none; }
+
+    .page-section.active {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    /* ---- Page typography ---- */
+    .page-label {
+      font-size: 9px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--fg-subtle);
+      margin-bottom: 36px;
+    }
+
+    .page-heading {
+      font-size: clamp(38px, 6.5vw, 88px);
+      font-weight: 300;
+      letter-spacing: -0.025em;
+      color: var(--fg);
+      line-height: 1.04;
+      margin-bottom: 32px;
+    }
+
+    .page-sub {
+      font-size: 15px;
+      font-weight: 300;
+      color: var(--fg-muted);
+      letter-spacing: 0.02em;
+      line-height: 1.6;
+      margin-bottom: 12px;
+      max-width: 480px;
+    }
+
+    .page-body {
+      font-size: 13.5px;
+      font-weight: 300;
+      color: var(--fg-muted);
+      line-height: 1.85;
+      max-width: 460px;
+    }
+
+    /* ---- Portfolio grid ---- */
+    .page-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 2px;
+      margin-top: 4px;
+      max-width: 800px;
+    }
+
+    .page-card {
+      aspect-ratio: 4 / 3;
+      background: var(--pill-bg);
+      border-radius: 4px;
+      display: flex;
+      align-items: flex-end;
+      padding: 14px 16px;
+      font-size: 11px;
+      font-weight: 300;
+      color: var(--fg-muted);
+      letter-spacing: 0.04em;
+      cursor: default;
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+
+    .page-card:hover {
+      background: rgba(0, 0, 0, 0.08);
+      color: var(--fg);
+    }
+
+    [data-theme="dark"] .page-card:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    /* ---- Pricing tiers ---- */
+    .page-tiers {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 4px;
+    }
+
+    .page-tier {
+      flex: 1;
+      min-width: 160px;
+      max-width: 220px;
+      padding: 28px 22px;
+      border: 1px solid var(--fg-subtle);
+      border-radius: 8px;
+      transition: border-color 0.3s ease;
+    }
+
+    .page-tier:hover { border-color: var(--fg-muted); }
+
+    .page-tier-name {
+      font-size: 9px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--fg-subtle);
+      margin-bottom: 14px;
+    }
+
+    .page-tier-price {
+      font-size: 34px;
+      font-weight: 300;
+      color: var(--fg);
+      letter-spacing: -0.02em;
+      margin-bottom: 20px;
+    }
+
+    .page-tier-features {
+      list-style: none;
+      font-size: 11.5px;
+      font-weight: 300;
+      color: var(--fg-muted);
+      line-height: 2.1;
+    }
+
+    /* ---- Contact form ---- */
+    .page-form {
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+      max-width: 380px;
+      margin-top: 4px;
+    }
+
+    .page-field {
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+    }
+
+    .page-field label {
+      font-size: 9px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--fg-subtle);
+    }
+
+    .page-field input,
+    .page-field textarea {
+      background: none;
+      border: none;
+      border-bottom: 1px solid var(--fg-subtle);
+      padding: 6px 0 7px;
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 300;
+      color: var(--fg);
+      outline: none;
+      resize: none;
+      transition: border-color 0.2s ease;
+      caret-color: var(--fg);
+    }
+
+    .page-field input:focus,
+    .page-field textarea:focus { border-color: var(--fg-muted); }
+
+    .page-field input::placeholder,
+    .page-field textarea::placeholder { color: var(--fg-subtle); }
+
+    .page-send {
+      align-self: flex-start;
+      font-size: 10.5px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--fg-muted);
+      cursor: pointer;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--fg-subtle);
+      transition: color 0.2s ease, border-color 0.2s ease;
+      user-select: none;
+    }
+
+    .page-send:hover { color: var(--fg); border-color: var(--fg-muted); }
+
+    /* ---- Active nav link ---- */
+    .nav-link.nav-link--current { color: var(--fg); }
   </style>
   <script>
     /* Typewriter effect for the browser tab title */
@@ -899,6 +1112,9 @@
   </nav>
 </div>
 
+<!-- Page content — sections injected from currently/pages.html -->
+<main class="content-area" id="content-area" aria-live="polite"></main>
+
 <!-- Music sidebar tab -->
 <div class="music-tab" id="music-tab" tabindex="0" role="button" aria-label="Toggle music player" aria-expanded="false">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -996,6 +1212,7 @@ const navLinksEl = document.getElementById('nav-links');
 const navPillEl  = document.getElementById('nav-pill');
 
 let NAV_ITEMS = [];
+const pageContent = {}; // { pageName: htmlString } — populated from pages.html
 
 async function loadNavItems() {
   try {
@@ -1005,30 +1222,38 @@ async function loadNavItems() {
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, 'text/html');
 
-    // Try <a> tags first, then <li>, then headings
+    // Primary: <section data-page="Name"> — name + content together
+    const sections = Array.from(doc.querySelectorAll('[data-page]'));
+    if (sections.length > 0) {
+      const items = sections.map(s => {
+        const label = s.getAttribute('data-page');
+        pageContent[label] = s.innerHTML;
+        return { label, href: null };
+      }).filter(i => i.label.length > 0);
+      if (items.length > 0) return items;
+    }
+
+    // Fallback: plain <a href> links (nav-only mode)
     let nodes = Array.from(doc.querySelectorAll('a[href]'));
     if (nodes.length === 0) nodes = Array.from(doc.querySelectorAll('li'));
     if (nodes.length === 0) nodes = Array.from(doc.querySelectorAll('h1,h2,h3'));
-
     const items = nodes
-      .map(n => ({
-        label: n.textContent.trim(),
-        href:  n.getAttribute ? (n.getAttribute('href') || null) : null,
-      }))
+      .map(n => ({ label: n.textContent.trim(), href: n.getAttribute?.('href') || null }))
       .filter(i => i.label.length > 0 && i.label.length < 40);
-
     if (items.length > 0) return items;
+
   } catch (e) {
     console.warn('Could not load currently/pages.html — using defaults', e);
   }
-  // Fallback defaults
-  return [
-    { label: 'Home',      href: null },
-    { label: 'About',     href: null },
-    { label: 'Portfolio', href: null },
-    { label: 'Pricing',   href: null },
-    { label: 'Contact',   href: null },
-  ];
+
+  // Hard fallback — also seed placeholder content
+  const defaults = ['Home', 'About', 'Portfolio', 'Pricing', 'Contact'];
+  defaults.forEach(label => {
+    pageContent[label] = `<p class="page-label">${label}</p>` +
+      `<h2 class="page-heading">${label}</h2>` +
+      `<p class="page-body">Add content for this page in <code>currently/pages.html</code>.</p>`;
+  });
+  return defaults.map(label => ({ label, href: null }));
 }
 
 function buildNavLinks(items) {
@@ -1048,7 +1273,9 @@ function buildNavLinks(items) {
       link.appendChild(span);
     });
     if (href) {
-      link.addEventListener('click', () => { window.location.href = href; });
+      onActivate(link, () => { window.location.href = href; });
+    } else {
+      onActivate(link, () => showPage(label));
     }
     navLinksEl.appendChild(link);
   });
@@ -1071,6 +1298,45 @@ const searchInput    = document.getElementById('search-input');
 const searchClose    = document.getElementById('search-close');
 const trailCanvas    = document.getElementById('trail-canvas');
 const navEl          = document.getElementById('main-nav');
+const contentArea    = document.getElementById('content-area');
+
+/* ============================================================
+   PAGE SWITCHING
+============================================================ */
+let activePage = null;
+
+function showPage(name) {
+  if (activePage === name) return;
+
+  // Fade out current section
+  const old = contentArea.querySelector('.page-section.active');
+  if (old) old.classList.remove('active');
+
+  activePage = name;
+
+  // Highlight active nav link
+  navLinks.forEach(l => l.classList.toggle('nav-link--current',
+    l.getAttribute('data-label') === name));
+
+  // Find or create the section
+  let section = Array.from(contentArea.children)
+    .find(el => el.dataset.section === name);
+
+  if (!section) {
+    section = document.createElement('div');
+    section.className = 'page-section';
+    section.dataset.section = name;
+    section.setAttribute('aria-label', name);
+    section.innerHTML = pageContent[name]
+      || `<p class="page-body">No content found for "${name}".</p>`;
+    contentArea.appendChild(section);
+  }
+
+  // Double rAF so the transition fires after the element is in the DOM
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    section.classList.add('active');
+  }));
+}
 
 /* ============================================================
    EASING UTILITIES
@@ -1649,6 +1915,9 @@ resetIdleTimer();
 (async function init() {
   const items = await loadNavItems();
   buildNavLinks(items);
+
+  // Show the first page immediately
+  if (NAV_ITEMS.length > 0) showPage(NAV_ITEMS[0]);
 
   // Pre-position pill at middle link so it doesn't fly from 0,0
   requestAnimationFrame(() => {
