@@ -1,131 +1,644 @@
+<style>
+  /* ── Page content styles (loaded dynamically) ─────────────────────────── */
+
+  .page-label {
+    font-size: 9px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--fg-subtle);
+    margin-bottom: 36px;
+  }
+
+  .page-heading {
+    font-size: clamp(36px, 6.5vw, 88px);
+    font-weight: 300;
+    letter-spacing: -0.025em;
+    color: var(--fg);
+    line-height: 1.04;
+    margin-bottom: 32px;
+  }
+
+  .page-sub {
+    font-size: 15px;
+    font-weight: 300;
+    color: var(--fg-muted);
+    letter-spacing: 0.02em;
+    line-height: 1.6;
+    max-width: 480px;
+    margin-bottom: 40px;
+  }
+
+  .page-body {
+    font-size: 13.5px;
+    font-weight: 300;
+    color: var(--fg-muted);
+    line-height: 1.85;
+    max-width: 440px;
+  }
+
+  /* ── Home: CTA actions ───────────────────────────────────────────────────*/
+  .page-actions {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .page-btn {
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    cursor: pointer;
+    user-select: none;
+    padding: 10px 20px;
+    border-radius: 100px;
+    transition: background 0.22s ease, color 0.22s ease,
+                border-color 0.22s ease, transform 0.25s var(--easing-spring);
+  }
+
+  .page-btn:hover { transform: scale(1.03); }
+
+  .page-btn--primary {
+    background: var(--fg);
+    color: var(--bg);
+  }
+
+  .page-btn--primary:hover {
+    background: var(--fg-muted);
+  }
+
+  .page-btn--ghost {
+    background: transparent;
+    color: var(--fg-muted);
+    border: 1px solid var(--fg-subtle);
+  }
+
+  .page-btn--ghost:hover {
+    color: var(--fg);
+    border-color: var(--fg-muted);
+  }
+
+  /* ── About: two-column split ────────────────────────────────────────────*/
+  .page-split {
+    display: flex;
+    gap: clamp(40px, 7vw, 100px);
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .page-split > :first-child {
+    flex: 2;
+    min-width: 220px;
+    max-width: 420px;
+  }
+
+  .page-stats {
+    flex: 1;
+    min-width: 160px;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    padding-top: 4px;
+  }
+
+  .page-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .page-stat-num {
+    font-size: clamp(28px, 3.5vw, 44px);
+    font-weight: 300;
+    color: var(--fg);
+    letter-spacing: -0.03em;
+    line-height: 1;
+  }
+
+  .page-stat-label {
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--fg-subtle);
+  }
+
+  /* ── Portfolio: grid cards ───────────────────────────────────────────────*/
+  .page-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 2px;
+    margin-top: 4px;
+    max-width: 860px;
+  }
+
+  .page-card {
+    aspect-ratio: 4 / 3;
+    background: var(--pill-bg);
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 18px 20px;
+    cursor: default;
+    transition: background 0.2s ease;
+  }
+
+  .page-card:hover {
+    background: rgba(0, 0, 0, 0.07);
+  }
+
+  [data-theme="dark"] .page-card:hover {
+    background: rgba(255, 255, 255, 0.07);
+  }
+
+  .page-card-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+  .page-card-num {
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    color: var(--fg-subtle);
+  }
+
+  .page-card-year {
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    color: var(--fg-subtle);
+    font-weight: 300;
+  }
+
+  .page-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .page-card-title {
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--fg);
+    letter-spacing: -0.01em;
+    transition: color 0.2s ease;
+  }
+
+  .page-card-cat {
+    font-size: 10px;
+    font-weight: 300;
+    color: var(--fg-subtle);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  /* ── Pricing: tiers ──────────────────────────────────────────────────────*/
+  .page-tiers {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+    align-items: stretch;
+  }
+
+  .page-tier {
+    flex: 1;
+    min-width: 160px;
+    max-width: 220px;
+    padding: 28px 22px;
+    border: 1px solid var(--fg-subtle);
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    transition: border-color 0.3s ease, background 0.25s ease;
+  }
+
+  .page-tier:hover { border-color: var(--fg-muted); }
+
+  .page-tier--featured {
+    border-color: var(--fg-muted);
+    background: var(--pill-bg);
+  }
+
+  .page-tier--featured:hover {
+    border-color: var(--fg);
+  }
+
+  .page-tier-badge {
+    font-size: 8px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--fg-subtle);
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .page-tier-badge::before {
+    content: '';
+    display: inline-block;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--fg-muted);
+  }
+
+  .page-tier-name {
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--fg-subtle);
+    margin-bottom: 12px;
+  }
+
+  .page-tier-price {
+    font-size: 36px;
+    font-weight: 300;
+    color: var(--fg);
+    letter-spacing: -0.03em;
+    margin-bottom: 6px;
+    line-height: 1;
+  }
+
+  .page-tier-period {
+    font-size: 10px;
+    color: var(--fg-subtle);
+    letter-spacing: 0.04em;
+    font-weight: 300;
+    margin-bottom: 24px;
+  }
+
+  .page-tier-divider {
+    height: 1px;
+    background: var(--fg-subtle);
+    margin-bottom: 20px;
+    opacity: 0.5;
+  }
+
+  .page-tier-features {
+    list-style: none;
+    font-size: 11.5px;
+    font-weight: 300;
+    color: var(--fg-muted);
+    line-height: 2.2;
+    flex: 1;
+  }
+
+  .page-tier-features li::before {
+    content: '–  ';
+    color: var(--fg-subtle);
+  }
+
+  /* ── Contact: form + social ──────────────────────────────────────────────*/
+  .page-contact-wrap {
+    display: flex;
+    gap: clamp(48px, 8vw, 120px);
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .page-form {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    min-width: 260px;
+    max-width: 360px;
+    flex: 1;
+    margin-top: 4px;
+  }
+
+  .page-field {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+  }
+
+  .page-field label {
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--fg-subtle);
+  }
+
+  .page-field input,
+  .page-field textarea {
+    background: none;
+    border: none;
+    border-bottom: 1px solid var(--fg-subtle);
+    padding: 6px 0 7px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 300;
+    color: var(--fg);
+    outline: none;
+    resize: none;
+    transition: border-color 0.2s ease;
+    caret-color: var(--fg);
+  }
+
+  .page-field input:focus,
+  .page-field textarea:focus { border-color: var(--fg-muted); }
+
+  .page-field input::placeholder,
+  .page-field textarea::placeholder { color: var(--fg-subtle); }
+
+  .page-send {
+    align-self: flex-start;
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--fg-muted);
+    cursor: pointer;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--fg-subtle);
+    transition: color 0.2s ease, border-color 0.2s ease;
+    user-select: none;
+  }
+
+  .page-send:hover { color: var(--fg); border-color: var(--fg-muted); }
+
+  .page-contact-aside {
+    display: flex;
+    flex-direction: column;
+    gap: 36px;
+    padding-top: 4px;
+    min-width: 140px;
+  }
+
+  .page-contact-block {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .page-contact-block-label {
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--fg-subtle);
+    margin-bottom: 2px;
+  }
+
+  .page-social-link {
+    font-size: 12px;
+    font-weight: 300;
+    color: var(--fg-muted);
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    transition: color 0.2s ease;
+    text-decoration: none;
+    display: block;
+    line-height: 2;
+  }
+
+  .page-social-link:hover { color: var(--fg); }
+</style>
+
+
+
+<!-- ─────────────────────────────────────────────────────────────────────── -->
+<!--  Home                                                                   -->
+<!-- ─────────────────────────────────────────────────────────────────────── -->
 <section data-page="Placeholder">
   <p class="page-label">Placeholder</p>
   <h1 class="page-heading">
     Placeholder<br>
-    Placeholder
+    Placeholder.
   </h1>
   <p class="page-sub">
-    Placeholder text.<br>
-    Placeholder text.
+    Placeholder text placeholder text<br>
+    placeholder text placeholder.
   </p>
+  <div class="page-actions">
+    <div
+      class="page-btn page-btn--primary"
+      role="button"
+      tabindex="0"
+    >Placeholder →</div>
+    <div
+      class="page-btn page-btn--ghost"
+      role="button"
+      tabindex="0"
+    >Placeholder</div>
+  </div>
 </section>
 
+<!-- ─────────────────────────────────────────────────────────────────────── -->
+<!--  About                                                                  -->
+<!-- ─────────────────────────────────────────────────────────────────────── -->
 <section data-page="Placeholder">
   <p class="page-label">Placeholder</p>
   <h2 class="page-heading">
     Placeholder<br>
     Placeholder.
   </h2>
-  <p class="page-body">
-    Placeholder text.<br><br>
-    Placeholder text.<br>
-    Placeholder text.
-  </p>
-</section>
-
-<section data-page="Placeholder">
-  <p class="page-label">Placeholder</p>
-  <h2 class="page-heading">Placeholder</h2>
-  <div class="page-grid">
-    <div class="page-card">
-      <span>001</span><br>
-      Placeholder
+  <div class="page-split">
+    <div>
+      <p class="page-body">
+        Placeholder text placeholder text placeholder text placeholder
+        text placeholder text placeholder text placeholder text.<br><br>
+        Placeholder text placeholder text placeholder text placeholder
+        text placeholder text placeholder text.
+      </p>
     </div>
-    <div class="page-card">
-      <span>002</span><br>
-      Placeholder
-    </div>
-    <div class="page-card">
-      <span>003</span><br>
-      Placeholder
-    </div>
-    <div class="page-card">
-      <span>004</span><br>
-      Placeholder
-    </div>
-    <div class="page-card">
-      <span>005</span><br>
-      Placeholder
-    </div>
-    <div class="page-card">
-      <span>006</span><br>
-      Placeholder
+    <div class="page-stats">
+      <div class="page-stat">
+        <span class="page-stat-num">—</span>
+        <span class="page-stat-label">Placeholder</span>
+      </div>
+      <div class="page-stat">
+        <span class="page-stat-num">—</span>
+        <span class="page-stat-label">Placeholder</span>
+      </div>
+      <div class="page-stat">
+        <span class="page-stat-num">—</span>
+        <span class="page-stat-label">Placeholder</span>
+      </div>
     </div>
   </div>
 </section>
 
+<!-- ─────────────────────────────────────────────────────────────────────── -->
+<!--  Portfolio                                                               -->
+<!-- ─────────────────────────────────────────────────────────────────────── -->
+<section data-page="Placeholder">
+  <p class="page-label">Placeholder</p>
+  <h2 class="page-heading">Placeholder.</h2>
+  <div class="page-grid">
+    <div class="page-card">
+      <div class="page-card-meta">
+        <span class="page-card-num">001</span>
+        <span class="page-card-year">—</span>
+      </div>
+      <div class="page-card-body">
+        <div class="page-card-title">Placeholder</div>
+        <div class="page-card-cat">Placeholder</div>
+      </div>
+    </div>
+    <div class="page-card">
+      <div class="page-card-meta">
+        <span class="page-card-num">002</span>
+        <span class="page-card-year">—</span>
+      </div>
+      <div class="page-card-body">
+        <div class="page-card-title">Placeholder</div>
+        <div class="page-card-cat">Placeholder</div>
+      </div>
+    </div>
+    <div class="page-card">
+      <div class="page-card-meta">
+        <span class="page-card-num">003</span>
+        <span class="page-card-year">—</span>
+      </div>
+      <div class="page-card-body">
+        <div class="page-card-title">Placeholder</div>
+        <div class="page-card-cat">Placeholder</div>
+      </div>
+    </div>
+    <div class="page-card">
+      <div class="page-card-meta">
+        <span class="page-card-num">004</span>
+        <span class="page-card-year">—</span>
+      </div>
+      <div class="page-card-body">
+        <div class="page-card-title">Placeholder</div>
+        <div class="page-card-cat">Placeholder</div>
+      </div>
+    </div>
+    <div class="page-card">
+      <div class="page-card-meta">
+        <span class="page-card-num">005</span>
+        <span class="page-card-year">—</span>
+      </div>
+      <div class="page-card-body">
+        <div class="page-card-title">Placeholder</div>
+        <div class="page-card-cat">Placeholder</div>
+      </div>
+    </div>
+    <div class="page-card">
+      <div class="page-card-meta">
+        <span class="page-card-num">006</span>
+        <span class="page-card-year">—</span>
+      </div>
+      <div class="page-card-body">
+        <div class="page-card-title">Placeholder</div>
+        <div class="page-card-cat">Placeholder</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────────────────────────────────── -->
+<!--  Pricing                                                                 -->
+<!-- ─────────────────────────────────────────────────────────────────────── -->
 <section data-page="Placeholder">
   <p class="page-label">Placeholder</p>
   <h2 class="page-heading">Placeholder.</h2>
   <div class="page-tiers">
+
     <div class="page-tier">
       <div class="page-tier-name">Placeholder</div>
-      <div class="page-tier-price">€0k</div>
+      <div class="page-tier-price">€—</div>
+      <div class="page-tier-period">Placeholder</div>
+      <div class="page-tier-divider"></div>
       <ul class="page-tier-features">
         <li>Placeholder feature</li>
         <li>Placeholder feature</li>
         <li>Placeholder feature</li>
       </ul>
     </div>
+
+    <div class="page-tier page-tier--featured">
+      <div class="page-tier-badge">Placeholder</div>
+      <div class="page-tier-name">Placeholder</div>
+      <div class="page-tier-price">€—</div>
+      <div class="page-tier-period">Placeholder</div>
+      <div class="page-tier-divider"></div>
+      <ul class="page-tier-features">
+        <li>Placeholder feature</li>
+        <li>Placeholder feature</li>
+        <li>Placeholder feature</li>
+        <li>Placeholder feature</li>
+      </ul>
+    </div>
+
     <div class="page-tier">
       <div class="page-tier-name">Placeholder</div>
-      <div class="page-tier-price">€0k</div>
+      <div class="page-tier-price">€—</div>
+      <div class="page-tier-period">Placeholder</div>
+      <div class="page-tier-divider"></div>
       <ul class="page-tier-features">
         <li>Placeholder feature</li>
         <li>Placeholder feature</li>
         <li>Placeholder feature</li>
       </ul>
     </div>
-    <div class="page-tier">
-      <div class="page-tier-name">Placeholder</div>
-      <div class="page-tier-price">€0k</div>
-      <ul class="page-tier-features">
-        <li>Placeholder feature</li>
-        <li>Placeholder feature</li>
-        <li>Placeholder feature</li>
-      </ul>
-    </div>
+
   </div>
 </section>
 
+<!-- ─────────────────────────────────────────────────────────────────────── -->
+<!--  Contact                                                                 -->
+<!-- ─────────────────────────────────────────────────────────────────────── -->
 <section data-page="Placeholder">
   <p class="page-label">Placeholder</p>
-  <h2 class="page-heading">Placeholder.</h2>
-  <form class="page-form" onsubmit="return false">
-    <div class="page-field">
-      <label for="cf-name">Placeholder</label>
-      <input
-        id="cf-name"
-        type="text"
-        placeholder="Placeholder"
-        autocomplete="off"
-      />
+  <h2 class="page-heading">Placeholder<br>Placeholder.</h2>
+  <div class="page-contact-wrap">
+
+    <form class="page-form" onsubmit="return false">
+      <div class="page-field">
+        <label for="cf-name">Placeholder</label>
+        <input
+          id="cf-name"
+          type="text"
+          placeholder="Placeholder"
+          autocomplete="off"
+        />
+      </div>
+      <div class="page-field">
+        <label for="cf-email">Placeholder</label>
+        <input
+          id="cf-email"
+          type="email"
+          placeholder="placeholder@example.com"
+          autocomplete="off"
+        />
+      </div>
+      <div class="page-field">
+        <label for="cf-msg">Placeholder</label>
+        <textarea
+          id="cf-msg"
+          rows="4"
+          placeholder="Placeholder text…"
+        ></textarea>
+      </div>
+      <div
+        class="page-send"
+        role="button"
+        tabindex="0"
+        onclick="this.textContent='Placeholder ✦'"
+        onkeydown="if(event.key==='Enter'||event.key===' ')this.textContent='Placeholder ✦'"
+      >Placeholder →</div>
+    </form>
+
+    <div class="page-contact-aside">
+      <div class="page-contact-block">
+        <div class="page-contact-block-label">Placeholder</div>
+        <a class="page-social-link" href="#">placeholder@example.com</a>
+      </div>
+      <div class="page-contact-block">
+        <div class="page-contact-block-label">Placeholder</div>
+        <a class="page-social-link" href="#" target="_blank">Placeholder</a>
+        <a class="page-social-link" href="#" target="_blank">Placeholder</a>
+        <a class="page-social-link" href="#" target="_blank">Placeholder</a>
+      </div>
+      <div class="page-contact-block">
+        <div class="page-contact-block-label">Placeholder</div>
+        <span class="page-social-link" style="cursor:default">Placeholder</span>
+      </div>
     </div>
-    <div class="page-field">
-      <label for="cf-email">Placeholder</label>
-      <input
-        id="cf-email"
-        type="email"
-        placeholder="placeholder@example.com"
-        autocomplete="off"
-      />
-    </div>
-    <div class="page-field">
-      <label for="cf-msg">Placeholder</label>
-      <textarea
-        id="cf-msg"
-        rows="4"
-        placeholder="Placeholder text..."
-      ></textarea>
-    </div>
-    <div
-      class="page-send"
-      role="button"
-      tabindex="0"
-      onclick="this.textContent='Placeholder ✦'"
-      onkeydown="if(event.key==='Enter'||event.key===' ')this.textContent='Placeholder ✦'"
-    >
-      Placeholder →
-    </div>
-  </form>
+
+  </div>
 </section>
