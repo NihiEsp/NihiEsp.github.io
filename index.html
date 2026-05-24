@@ -3,10 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MAISON — Navigation</title>
+  <title>NihiEsp</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✦</text></svg>" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js"></script>
 
   <style>
     /* ============================================================
@@ -536,6 +538,13 @@
       display: block;
     }
 
+    .music-art img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+    }
+
     /* Track info */
     .music-info {
       display: flex;
@@ -762,6 +771,50 @@
       font-weight: 300;
     }
   </style>
+  <script>
+    /* Typewriter effect for the browser tab title */
+    (function () {
+      const full   = 'NihiEsp';
+      const cursor = '|';
+      let phase  = 'typing';   // typing → pause → erasing → pause2 → typing
+      let idx    = 0;
+      let timer;
+
+      function tick() {
+        if (phase === 'typing') {
+          idx++;
+          document.title = full.slice(0, idx) + cursor;
+          if (idx === full.length) { phase = 'pause';  timer = setTimeout(tick, 1400); return; }
+          timer = setTimeout(tick, 110 + Math.random() * 60);
+
+        } else if (phase === 'pause') {
+          /* blink cursor twice then erase */
+          document.title = full + ' ';
+          setTimeout(() => {
+            document.title = full + cursor;
+            setTimeout(() => {
+              document.title = full + ' ';
+              setTimeout(() => { phase = 'erasing'; tick(); }, 260);
+            }, 260);
+          }, 260);
+          return;
+
+        } else if (phase === 'erasing') {
+          idx--;
+          document.title = full.slice(0, idx) + (idx > 0 ? cursor : '');
+          if (idx === 0) { phase = 'pause2'; timer = setTimeout(tick, 600); return; }
+          timer = setTimeout(tick, 55 + Math.random() * 30);
+
+        } else if (phase === 'pause2') {
+          phase = 'typing';
+          tick();
+        }
+      }
+
+      /* Start after a short delay so the page feels settled */
+      setTimeout(tick, 800);
+    })();
+  </script>
 </head>
 <body>
 
@@ -937,34 +990,81 @@ function onActivate(el, fn) {
 }
 
 /* ============================================================
-   SETUP: Inject nav links
+   SETUP: Inject nav links — loaded from currently/pages.html
 ============================================================ */
-const NAV_ITEMS = ['Home', 'About', 'Portfolio', 'Pricing', 'Contact'];
-
 const navLinksEl = document.getElementById('nav-links');
 const navPillEl  = document.getElementById('nav-pill');
 
-NAV_ITEMS.forEach((label) => {
-  const link = document.createElement('div');
-  link.className = 'nav-link';
-  link.setAttribute('data-label', label);
-  link.setAttribute('role', 'button');
-  link.setAttribute('tabindex', '0');
-  link.setAttribute('aria-label', label);
-  label.split('').forEach((char) => {
-    const span = document.createElement('span');
-    span.className = 'char';
-    span.textContent = char;
-    link.appendChild(span);
+let NAV_ITEMS = [];
+
+async function loadNavItems() {
+  try {
+    const res = await fetch('currently/pages.html');
+    if (!res.ok) throw new Error('fetch failed');
+    const html = await res.text();
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+
+    // Try <a> tags first, then <li>, then headings
+    let nodes = Array.from(doc.querySelectorAll('a[href]'));
+    if (nodes.length === 0) nodes = Array.from(doc.querySelectorAll('li'));
+    if (nodes.length === 0) nodes = Array.from(doc.querySelectorAll('h1,h2,h3'));
+
+    const items = nodes
+      .map(n => ({
+        label: n.textContent.trim(),
+        href:  n.getAttribute ? (n.getAttribute('href') || null) : null,
+      }))
+      .filter(i => i.label.length > 0 && i.label.length < 40);
+
+    if (items.length > 0) return items;
+  } catch (e) {
+    console.warn('Could not load currently/pages.html — using defaults', e);
+  }
+  // Fallback defaults
+  return [
+    { label: 'Home',      href: null },
+    { label: 'About',     href: null },
+    { label: 'Portfolio', href: null },
+    { label: 'Pricing',   href: null },
+    { label: 'Contact',   href: null },
+  ];
+}
+
+function buildNavLinks(items) {
+  NAV_ITEMS = items.map(i => i.label);
+  items.forEach(({ label, href }) => {
+    const link = document.createElement('div');
+    link.className = 'nav-link';
+    link.setAttribute('data-label', label);
+    link.setAttribute('role', href ? 'link' : 'button');
+    link.setAttribute('tabindex', '0');
+    link.setAttribute('aria-label', label);
+    if (href) link.setAttribute('data-href', href);
+    label.split('').forEach((char) => {
+      const span = document.createElement('span');
+      span.className = 'char';
+      span.textContent = char;
+      link.appendChild(span);
+    });
+    if (href) {
+      link.addEventListener('click', () => { window.location.href = href; });
+    }
+    navLinksEl.appendChild(link);
   });
-  navLinksEl.appendChild(link);
-});
+  // Re-sync navLinks array used by magnetic / pill
+  navLinks.length = 0;
+  Array.from(navLinksEl.querySelectorAll('.nav-link')).forEach(l => navLinks.push(l));
+  magnetic.links = navLinks.map(el => ({ el, ox: 0, oy: 0, tx: 0, ty: 0 }));
+  ambient.phases = NAV_ITEMS.map((_, i) => i * Math.PI * 0.65);
+  invalidateRects();
+}
 
 const navInner       = document.getElementById('nav-inner');
 const navBorder      = document.getElementById('nav-border');
 const brandEl        = document.getElementById('brand');
 const brandMark      = document.getElementById('brand-mark');
-const navLinks       = Array.from(navLinksEl.querySelectorAll('.nav-link'));
+const navLinks       = []; // populated after pages.html fetch
 const searchBtn      = document.getElementById('search-btn');
 const searchExpanded = document.getElementById('search-expanded');
 const searchInput    = document.getElementById('search-input');
@@ -1037,7 +1137,7 @@ function pillHide() {
    MAGNETIC STATE
 ============================================================ */
 const magnetic = {
-  links: navLinks.map(link => ({ el: link, ox: 0, oy: 0, tx: 0, ty: 0 })),
+  links: [], // populated after pages.html fetch
   mouseX: 0,
   mouseY: 0,
 };
@@ -1107,7 +1207,7 @@ const ambient = {
   active:    false,
   idleTimer: null,
   t:         0,
-  phases: NAV_ITEMS.map((_, i) => i * Math.PI * 0.65),
+  phases: [], // populated after pages.html fetch
 };
 
 function startAmbient() {
@@ -1541,24 +1641,29 @@ navEl.addEventListener('mouseleave', () => {
 });
 
 /* ============================================================
-   INIT
+   INIT — load nav pages first, then kick off animation
 ============================================================ */
 if (!isTouch) initTrail();
 resetIdleTimer();
 
-// Pre-position pill at middle link so it doesn't fly from 0,0
-requestAnimationFrame(() => {
-  if (navLinks.length > 0) {
-    const { rects, container } = getLinkRects();
-    const mid = navLinks[Math.floor(navLinks.length / 2)];
-    const idx = navLinks.indexOf(mid);
-    pill.x     = rects[idx].left - container.left;
-    pill.w     = rects[idx].width;
-    pill.alpha = 0;
-  }
-  // Start master loop after one frame so DOM is settled
-  masterRaf = requestAnimationFrame(masterTick);
-});
+(async function init() {
+  const items = await loadNavItems();
+  buildNavLinks(items);
+
+  // Pre-position pill at middle link so it doesn't fly from 0,0
+  requestAnimationFrame(() => {
+    if (navLinks.length > 0) {
+      const { rects, container } = getLinkRects();
+      const mid = navLinks[Math.floor(navLinks.length / 2)];
+      const idx = navLinks.indexOf(mid);
+      pill.x     = rects[idx].left - container.left;
+      pill.w     = rects[idx].width;
+      pill.alpha = 0;
+    }
+    // Start master loop after one frame so DOM is settled
+    masterRaf = requestAnimationFrame(masterTick);
+  });
+})();
 /* ============================================================
    DARK MODE
 ============================================================ */
@@ -1587,38 +1692,41 @@ onActivate(themeToggle, () => {
 /* ============================================================
    MUSIC PLAYER
 ============================================================ */
+
+/* Tracks — real files from the music/ folder.
+   Artist and duration are populated at runtime:
+   - artist: read from ID3 tags via jsmediatags (falls back to title)
+   - dur: set from audio.duration once metadata loads            */
 const TRACKS = [
-  {
-    title:  'Nocturne I',
-    artist: 'Ambient Collection',
-    dur:    180,
-    freqs:  [110, 130.8, 164.8, 220],       // Am
-    art:    ['#1a1917', '#2d2b28', '#3d3a35'],
-  },
-  {
-    title:  'Soleil II',
-    artist: 'Ambient Collection',
-    dur:    180,
-    freqs:  [146.8, 185, 220, 293.7],        // Dm
-    art:    ['#1d2028', '#252a38', '#2e3548'],
-  },
-  {
-    title:  'Brume III',
-    artist: 'Ambient Collection',
-    dur:    180,
-    freqs:  [130.8, 164.8, 196, 261.6],      // Cm
-    art:    ['#1a1d1a', '#222722', '#2a3029'],
-  },
-  {
-    title:  'Aube IV',
-    artist: 'Ambient Collection',
-    dur:    180,
-    freqs:  [164.8, 196, 246.9, 329.6],      // Em
-    art:    ['#201d18', '#2c2820', '#3a342a'],
-  },
+  { title: 'Confetti', artist: 'Loading…', dur: 0, src: 'music/confetti.mp3', cover: 'music/confetti.jpeg' },
+  { title: 'Khel',     artist: 'Loading…', dur: 0, src: 'music/khel.mp3',     cover: 'music/khel.jpeg'     },
+  { title: 'Spade',    artist: 'Loading…', dur: 0, src: 'music/spade.mp3',    cover: 'music/spade.jpeg'    },
 ];
 
-const TRACK_DURATION = 180; // seconds
+/* Read ID3 tags for artist name */
+function loadTrackMeta(track, index) {
+  if (typeof jsmediatags === 'undefined') return;
+  jsmediatags.read(track.src, {
+    onSuccess(tag) {
+      const artist = tag.tags?.artist || tag.tags?.TPE1 || null;
+      if (artist) {
+        TRACKS[index].artist = artist;
+        if (musicState.currentTrack === index) {
+          musicArtist.textContent = artist;
+          // Rebuild playlist row to show updated info
+          buildPlaylist();
+        }
+      }
+    },
+    onError() { /* silently leave artist as track title */ },
+  });
+}
+
+TRACKS.forEach((t, i) => {
+  // Use track title as artist fallback if tag read fails
+  t.artist = t.title;
+  loadTrackMeta(t, i);
+});
 
 const musicState = {
   currentTrack: 0,
@@ -1626,10 +1734,28 @@ const musicState = {
   elapsed:      0,
   volume:       0.6,
   progressTimer: null,
-  audioCtx:     null,
-  masterGain:   null,
-  nodes:        [],
 };
+
+/* Hidden <audio> element — drives all playback */
+const audioEl = document.createElement('audio');
+audioEl.style.display = 'none';
+audioEl.preload = 'metadata';
+document.body.appendChild(audioEl);
+
+/* Preload durations for all tracks */
+TRACKS.forEach((track, i) => {
+  const probe = document.createElement('audio');
+  probe.preload = 'metadata';
+  probe.src = track.src;
+  probe.addEventListener('loadedmetadata', () => {
+    TRACKS[i].dur = Math.round(probe.duration) || 0;
+    if (musicState.currentTrack === i) {
+      musicProgress.max = TRACKS[i].dur;
+      musicDuration.textContent = formatTime(TRACKS[i].dur);
+    }
+    buildPlaylist(); // refresh duration in list
+  });
+});
 
 /* DOM refs */
 const musicSidebar  = document.getElementById('music-sidebar');
@@ -1648,22 +1774,6 @@ const musicPlaylist = document.getElementById('music-playlist');
 const iconPlayEl    = document.getElementById('icon-play');
 const iconPauseEl   = document.getElementById('icon-pause');
 
-/* Build album art SVG per track */
-function buildArt(track) {
-  const [c1, c2, c3] = track.art;
-  return `<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-    <rect width="200" height="200" fill="${c1}"/>
-    <circle cx="100" cy="100" r="80" fill="${c2}" opacity="0.6"/>
-    <circle cx="100" cy="100" r="45" fill="${c3}" opacity="0.7"/>
-    <circle cx="100" cy="100" r="15" fill="${c1}" opacity="0.9"/>
-    <circle cx="100" cy="100" r="4" fill="${c2}"/>
-    <line x1="60" y1="30" x2="100" y2="100" stroke="${c3}" stroke-width="0.5" opacity="0.4"/>
-    <line x1="140" y1="30" x2="100" y2="100" stroke="${c3}" stroke-width="0.5" opacity="0.4"/>
-    <line x1="170" y1="100" x2="100" y2="100" stroke="${c3}" stroke-width="0.5" opacity="0.4"/>
-    <line x1="30" y1="100" x2="100" y2="100" stroke="${c3}" stroke-width="0.5" opacity="0.4"/>
-  </svg>`;
-}
-
 /* Build playlist items */
 function buildPlaylist() {
   musicPlaylist.innerHTML = '';
@@ -1673,141 +1783,88 @@ function buildPlaylist() {
     item.setAttribute('role', 'button');
     item.setAttribute('tabindex', '0');
     item.setAttribute('aria-label', `Play ${t.title}`);
+    const durStr = t.dur > 0 ? formatTime(t.dur) : '–:––';
     item.innerHTML = `
       <span class="music-track-num">${i + 1}</span>
       <div class="music-track-info">
         <div class="music-track-name">${t.title}</div>
       </div>
-      <span class="music-track-dur">${formatTime(t.dur)}</span>`;
+      <span class="music-track-dur">${durStr}</span>`;
     onActivate(item, () => selectTrack(i));
     musicPlaylist.appendChild(item);
   });
 }
 
 function formatTime(s) {
+  if (!s || isNaN(s)) return '0:00';
   return `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
 }
 
 function updatePlayerUI() {
   const t = TRACKS[musicState.currentTrack];
-  musicTitle.textContent  = t.title;
-  musicArtist.textContent = t.artist;
-  musicArt.innerHTML      = buildArt(t);
-  musicDuration.textContent = formatTime(t.dur);
-  musicProgress.max = t.dur;
+  musicTitle.textContent    = t.title;
+  musicArtist.textContent   = t.artist;
+  // Show real cover image
+  musicArt.innerHTML = `<img src="${t.cover}" alt="${t.title} cover" onerror="this.style.display='none'">`;
+  const dur = t.dur > 0 ? t.dur : (isFinite(audioEl.duration) ? Math.round(audioEl.duration) : 0);
+  musicDuration.textContent = formatTime(dur);
+  musicProgress.max   = dur || 180;
   musicProgress.value = musicState.elapsed;
-  musicElapsed.textContent = formatTime(musicState.elapsed);
-  iconPlayEl.style.display   = musicState.isPlaying ? 'none' : '';
-  iconPauseEl.style.display  = musicState.isPlaying ? '' : 'none';
-  // Playlist active state
+  musicElapsed.textContent  = formatTime(musicState.elapsed);
+  iconPlayEl.style.display  = musicState.isPlaying ? 'none' : '';
+  iconPauseEl.style.display = musicState.isPlaying ? ''     : 'none';
   musicPlaylist.querySelectorAll('.music-track-item').forEach((el, i) => {
     el.classList.toggle('active', i === musicState.currentTrack);
   });
 }
 
-/* ---- Web Audio ---- */
-function ensureAudioCtx() {
-  if (!musicState.audioCtx) {
-    musicState.audioCtx   = new (window.AudioContext || window.webkitAudioContext)();
-    musicState.masterGain = musicState.audioCtx.createGain();
-    musicState.masterGain.gain.value = 0;
-    musicState.masterGain.connect(musicState.audioCtx.destination);
-  }
-  if (musicState.audioCtx.state === 'suspended') musicState.audioCtx.resume();
-}
-
+/* ---- Real audio playback ---- */
 function stopAudio() {
-  const nodes = musicState.nodes;
-  if (nodes.length === 0) return;
-  const ctx = musicState.audioCtx;
-  if (!ctx) return;
-  const now = ctx.currentTime;
-  musicState.masterGain.gain.cancelScheduledValues(now);
-  musicState.masterGain.gain.setValueAtTime(musicState.masterGain.gain.value, now);
-  musicState.masterGain.gain.linearRampToValueAtTime(0, now + 0.6);
-  setTimeout(() => {
-    nodes.forEach(n => { try { if (n.stop) n.stop(); n.disconnect(); } catch(_){} });
-    musicState.nodes = [];
-  }, 700);
+  audioEl.pause();
 }
 
 function startAudio(track) {
-  ensureAudioCtx();
-  stopAudio();
-  const ctx  = musicState.audioCtx;
-  const now  = ctx.currentTime;
-  const gain = musicState.masterGain;
-
-  track.freqs.forEach((freq, i) => {
-    const osc  = ctx.createOscillator();
-    const gn   = ctx.createGain();
-    const lfo  = ctx.createOscillator();
-    const lfoG = ctx.createGain();
-    const dly  = ctx.createDelay(2.0);
-    const dlyG = ctx.createGain();
-
-    osc.type = 'sine';
-    osc.frequency.value = freq;
-    osc.detune.value = (i % 2 === 0 ? 1 : -1) * (3 + i * 1.5);
-
-    gn.gain.value = 0.22 / track.freqs.length;
-
-    lfo.type = 'sine';
-    lfo.frequency.value = 0.07 + i * 0.04;
-    lfoG.gain.value = 0.08;
-
-    dly.delayTime.value = 0.25 + i * 0.18;
-    dlyG.gain.value = 0.28;
-
-    lfo.connect(lfoG);
-    lfoG.connect(gn.gain);
-    osc.connect(gn);
-    gn.connect(gain);
-    gn.connect(dly);
-    dly.connect(dlyG);
-    dlyG.connect(gain);
-
-    osc.start(now);
-    lfo.start(now);
-
-    musicState.nodes.push(osc, lfo, gn, lfoG, dly, dlyG);
-  });
-
-  gain.gain.cancelScheduledValues(now);
-  gain.gain.setValueAtTime(0, now);
-  gain.gain.linearRampToValueAtTime(musicState.volume * 0.28, now + 2.5);
-}
-
-/* ---- Progress timer ---- */
-function startProgressTimer() {
-  stopProgressTimer();
-  musicState.progressTimer = setInterval(() => {
-    musicState.elapsed++;
-    if (musicState.elapsed >= TRACKS[musicState.currentTrack].dur) {
-      musicState.elapsed = 0;
-      selectTrack((musicState.currentTrack + 1) % TRACKS.length, true);
-      return;
-    }
-    musicProgress.value = musicState.elapsed;
-    musicElapsed.textContent = formatTime(musicState.elapsed);
-  }, 1000);
-}
-
-function stopProgressTimer() {
-  if (musicState.progressTimer) {
-    clearInterval(musicState.progressTimer);
-    musicState.progressTimer = null;
+  if (audioEl.src !== new URL(track.src, location.href).href) {
+    audioEl.src = track.src;
+    audioEl.currentTime = musicState.elapsed;
   }
+  audioEl.volume = musicState.volume;
+  audioEl.play().catch(() => {});
 }
+
+/* Sync progress bar from audio element */
+audioEl.addEventListener('timeupdate', () => {
+  if (!musicState.isPlaying) return;
+  musicState.elapsed = Math.floor(audioEl.currentTime);
+  musicProgress.value = musicState.elapsed;
+  musicElapsed.textContent = formatTime(musicState.elapsed);
+});
+
+audioEl.addEventListener('loadedmetadata', () => {
+  const idx = musicState.currentTrack;
+  TRACKS[idx].dur = Math.round(audioEl.duration) || 0;
+  musicProgress.max = TRACKS[idx].dur;
+  musicDuration.textContent = formatTime(TRACKS[idx].dur);
+});
+
+audioEl.addEventListener('ended', () => {
+  musicState.elapsed = 0;
+  selectTrack((musicState.currentTrack + 1) % TRACKS.length, true);
+});
+
+/* ---- Progress timer (fallback tick for scrubber display) ---- */
+function startProgressTimer() { /* handled by timeupdate */ }
+function stopProgressTimer()  { /* no-op */ }
 
 /* ---- Track selection ---- */
 function selectTrack(index, autoplay) {
   musicState.currentTrack = index;
   musicState.elapsed = 0;
+  audioEl.src = TRACKS[index].src;
+  audioEl.currentTime = 0;
   if (musicState.isPlaying || autoplay) {
     musicState.isPlaying = true;
     startAudio(TRACKS[index]);
-    startProgressTimer();
   }
   updatePlayerUI();
 }
@@ -1816,10 +1873,8 @@ function togglePlay() {
   musicState.isPlaying = !musicState.isPlaying;
   if (musicState.isPlaying) {
     startAudio(TRACKS[musicState.currentTrack]);
-    startProgressTimer();
   } else {
     stopAudio();
-    stopProgressTimer();
   }
   updatePlayerUI();
 }
@@ -1851,14 +1906,13 @@ onActivate(musicNextBtn, () => selectTrack((musicState.currentTrack + 1) % TRACK
 
 musicProgress.addEventListener('input', () => {
   musicState.elapsed = parseInt(musicProgress.value, 10);
+  audioEl.currentTime = musicState.elapsed;
   musicElapsed.textContent = formatTime(musicState.elapsed);
 });
 
 musicVolume.addEventListener('input', () => {
   musicState.volume = parseInt(musicVolume.value, 10) / 100;
-  if (musicState.audioCtx && musicState.isPlaying) {
-    musicState.masterGain.gain.value = musicState.volume * 0.28;
-  }
+  audioEl.volume = musicState.volume;
 });
 
 document.addEventListener('keydown', (e) => {
@@ -1868,6 +1922,7 @@ document.addEventListener('keydown', (e) => {
 /* ---- Init player UI ---- */
 buildPlaylist();
 updatePlayerUI();
+
 </script>
 </body>
 </html>
