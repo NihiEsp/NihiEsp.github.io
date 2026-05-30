@@ -17,6 +17,13 @@
       --fg-muted: rgba(26, 25, 23, 0.45);
       --fg-subtle: rgba(26, 25, 23, 0.22);
       --pill-bg: rgba(0, 0, 0, 0.04);
+      --zoom-stage-bg: #f8f7f4;
+      --zoom-frame-1: #fffdfa;
+      --zoom-frame-2: #ebe7de;
+      --zoom-frame-3: #d9d2c7;
+      --zoom-window-bg: #f0ece4;
+      --zoom-window-bar: #ddd6ca;
+      --zoom-preview-line: rgba(26, 25, 23, 0.34);
       --nav-height: 72px;
       --easing-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
       --easing-smooth: cubic-bezier(0.4, 0, 0.2, 1);
@@ -28,6 +35,13 @@
       --fg-muted: rgba(237, 233, 227, 0.42);
       --fg-subtle: rgba(237, 233, 227, 0.15);
       --pill-bg: rgba(255, 255, 255, 0.06);
+      --zoom-stage-bg: #080808;
+      --zoom-frame-1: #ede9e3;
+      --zoom-frame-2: #cfc8bc;
+      --zoom-frame-3: #a79f94;
+      --zoom-window-bg: #1b1a18;
+      --zoom-window-bar: #2d2b28;
+      --zoom-preview-line: rgba(237, 233, 227, 0.34);
     }
     body, .nav, .page, .music-sidebar {
       transition: background-color 0.4s ease, color 0.4s ease,
@@ -723,68 +737,104 @@
     /* page-content styles live in pages.html — injected at runtime */
     .nav-link.nav-link--current { color: var(--fg); }
 
-    /* ── Entrance overlay ── */
-    #ent {
+    .site-shell {
       position: fixed;
       inset: 0;
-      z-index: 9999;
-      background: #080808;
+      width: 100%;
+      height: 100vh;
+      background: var(--bg);
+      transform-origin: center center;
+      transition: background-color 0.4s ease;
+      z-index: 1;
+    }
+
+    body.scroll-zoom-active .site-shell {
+      inset: auto;
+      left: 50%;
+      top: 50%;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      pointer-events: none;
+      border: 1px solid var(--fg-subtle);
+      z-index: 301;
+      will-change: transform, border-radius, box-shadow;
+    }
+
+    .scroll-zoom-stage {
+      position: fixed;
+      inset: 0;
+      z-index: 300;
       display: grid;
       place-items: center;
+      overflow: hidden;
+      background: var(--zoom-stage-bg);
+      color: var(--fg);
+      opacity: 1;
+      visibility: visible;
+      touch-action: none;
+      transition: opacity 0.65s var(--easing-smooth),
+                  visibility 0.65s var(--easing-smooth);
     }
-    #ent.ent-exit {
+
+    .scroll-zoom-stage.is-complete {
       opacity: 0;
-      transition: opacity 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+      visibility: hidden;
       pointer-events: none;
     }
-    #ent.ent-gone { display: none; }
 
-    .ent-stack {
+    .scroll-zoom-stack {
       position: relative;
-      width: 940px;
-      height: 620px;
-      flex-shrink: 0;
+      width: min(940px, 88vw);
+      height: min(620px, 70vh);
+      min-height: 360px;
     }
-    .ent-sq {
+
+    .scroll-zoom-frame {
       position: absolute;
-      left: 50%; top: 50%;
+      left: 50%;
+      top: 50%;
       transform: translate(-50%, -50%) scale(1);
       transform-origin: center;
-      will-change: transform;
+      will-change: transform, width, height;
     }
-    .ent-sq3 { width: 800px; height: 467px; background: #d1d1d1; }
-    .ent-sq2 { width: 660px; height: 385px; background: #e8e8e8; }
-    .ent-sq1 { width: 520px; height: 303px; background: #ffffff; }
 
-    .ent-win {
-      position: absolute;
-      left: 50%; top: 50%;
-      transform: translate(-50%, -50%);
-      width: 430px; height: 251px;
-      overflow: hidden;
-      will-change: width, height;
-      background: #a7a7a7;
+    .scroll-zoom-frame {
+      border: 1px solid var(--fg-subtle);
     }
-    .ent-bar {
-      height: 28px; width: 100%;
-      background: #777;
-      display: flex; align-items: center;
-      gap: 8px; padding-left: 16px;
-      flex-shrink: 0;
+
+    .scroll-zoom-frame-1 {
+      z-index: 3;
+      width: min(520px, 58vw);
+      aspect-ratio: 520 / 303;
+      background: var(--zoom-frame-1);
     }
-    .ent-dot { width: 9px; height: 9px; border-radius: 50%; background: #5f5f5f; }
-    .ent-page {
-      height: calc(100% - 28px);
-      padding: 34px 44px;
-      background: #a7a7a7;
-      display: grid;
-      grid-template-columns: 1.15fr 0.85fr;
-      gap: 52px;
+
+    .scroll-zoom-frame-2 {
+      z-index: 2;
+      width: min(660px, 72vw);
+      aspect-ratio: 660 / 385;
+      background: var(--zoom-frame-2);
     }
-    .ent-title { width: 42%; height: 34px; background: #737373; margin-bottom: 34px; }
-    .ent-line  { width: 72%; height: 14px; background: #787878; margin-bottom: 17px; }
-    .ent-line.s { width: 47%; }
-    .ent-img   { width: 100%; height: 100%; background: #777; }
+
+    .scroll-zoom-frame-3 {
+      z-index: 1;
+      width: min(800px, 84vw);
+      aspect-ratio: 800 / 467;
+      background: var(--zoom-frame-3);
+    }
+
+    @media (max-width: 640px) {
+      .scroll-zoom-stack {
+        width: 92vw;
+        height: 72vh;
+        min-height: 420px;
+      }
+
+      .scroll-zoom-frame-1 { width: 68vw; }
+      .scroll-zoom-frame-2 { width: 80vw; }
+      .scroll-zoom-frame-3 { width: 92vw; }
+    }
   </style>
   <script>
     (function () {
@@ -823,112 +873,15 @@
     })();
   </script>
 </head>
-<body>
-
-<!-- ── Entrance animation overlay ── -->
-<div id="ent" aria-hidden="true">
-  <div class="ent-stack">
-    <div class="ent-sq ent-sq3" id="esq3"></div>
-    <div class="ent-sq ent-sq2" id="esq2"></div>
-    <div class="ent-sq ent-sq1" id="esq1"></div>
-    <div class="ent-win" id="ewin">
-      <div class="ent-bar">
-        <span class="ent-dot"></span><span class="ent-dot"></span><span class="ent-dot"></span>
-      </div>
-      <div class="ent-page">
-        <div>
-          <div class="ent-title"></div>
-          <div class="ent-line"></div>
-          <div class="ent-line"></div>
-          <div class="ent-line s"></div>
-        </div>
-        <div class="ent-img"></div>
-      </div>
-    </div>
+<body class="scroll-zoom-active">
+<section class="scroll-zoom-stage" id="scroll-zoom-stage" tabindex="0" aria-label="Scroll zoom introduction">
+  <div class="scroll-zoom-stack" aria-hidden="true">
+    <div class="scroll-zoom-frame scroll-zoom-frame-3" id="scroll-zoom-frame-3"></div>
+    <div class="scroll-zoom-frame scroll-zoom-frame-2" id="scroll-zoom-frame-2"></div>
+    <div class="scroll-zoom-frame scroll-zoom-frame-1" id="scroll-zoom-frame-1"></div>
   </div>
-</div>
-
-<script>
-(function() {
-  const ent  = document.getElementById('ent');
-  const esq1 = document.getElementById('esq1');
-  const esq2 = document.getElementById('esq2');
-  const esq3 = document.getElementById('esq3');
-  const ewin = document.getElementById('ewin');
-
-  const clamp = (v,a,b) => Math.min(b, Math.max(a, v));
-  const lerp  = (a,b,t) => a + (b-a)*t;
-  const seg   = (p,s,e) => clamp((p-s)/(e-s), 0, 1);
-  const smooth= t => t*t*t*(t*(t*6-15)+10);
-
-  let progress = 0;
-  let done = false;
-  let rafId = null;
-
-  function animSq(el, p, s, e, maxS) {
-    const sc = lerp(1, maxS, smooth(seg(p, s, e)));
-    el.style.transform = `translate(-50%,-50%) scale(${sc})`;
-  }
-
-  function render() {
-    animSq(esq3, progress, 0.00, 0.34, 9);
-    animSq(esq2, progress, 0.24, 0.58, 9);
-    animSq(esq1, progress, 0.48, 0.80, 9);
-
-    const siteT = smooth(seg(progress, 0.68, 0.96));
-    const w = lerp(430, window.innerWidth,  siteT);
-    const h = lerp(251, window.innerHeight, siteT);
-    ewin.style.width  = w + 'px';
-    ewin.style.height = h + 'px';
-
-    if (progress >= 1 && !done) {
-      done = true;
-      ent.classList.add('ent-exit');
-      ent.addEventListener('transitionend', () => ent.classList.add('ent-gone'), { once: true });
-    }
-  }
-
-  // Accumulate scroll delta from wheel events
-  const TOTAL = 2400; // px of wheel delta to complete animation
-  let accumulated = 0;
-  let ticking = false;
-
-  function onWheel(e) {
-    if (done) return;
-    e.preventDefault();
-    accumulated = clamp(accumulated + Math.abs(e.deltaY || e.deltaX || e.detail || 1) * (e.deltaMode === 1 ? 40 : e.deltaMode === 2 ? 800 : 1), 0, TOTAL);
-    progress = accumulated / TOTAL;
-    if (!ticking) {
-      ticking = true;
-      rafId = requestAnimationFrame(() => { render(); ticking = false; });
-    }
-  }
-
-  // Also support touch swipe
-  let touchStartY = null;
-  function onTouchStart(e) { touchStartY = e.touches[0].clientY; }
-  function onTouchMove(e) {
-    if (done || touchStartY === null) return;
-    e.preventDefault();
-    const dy = touchStartY - e.touches[0].clientY;
-    touchStartY = e.touches[0].clientY;
-    accumulated = clamp(accumulated + Math.abs(dy) * 2.5, 0, TOTAL);
-    progress = accumulated / TOTAL;
-    if (!ticking) {
-      ticking = true;
-      rafId = requestAnimationFrame(() => { render(); ticking = false; });
-    }
-  }
-
-  window.addEventListener('wheel', onWheel, { passive: false });
-  window.addEventListener('touchstart', onTouchStart, { passive: true });
-  window.addEventListener('touchmove', onTouchMove, { passive: false });
-  window.addEventListener('resize', () => { if (!done) render(); });
-
-  render(); // initial state
-})();
-</script>
-
+</section>
+<div class="site-shell" id="site-shell">
 <canvas id="trail-canvas" aria-hidden="true"></canvas>
 <div class="theme-toggle" id="theme-toggle" tabindex="0" role="button" aria-label="Toggle dark mode">
   <svg id="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="display:none">
@@ -1054,9 +1007,180 @@
 
   </div>
 </aside>
+</div>
 
 <script>
 'use strict';
+(function initScrollZoomReveal() {
+  const stage = document.getElementById('scroll-zoom-stage');
+  const siteShell = document.getElementById('site-shell');
+  if (!stage || !siteShell) return;
+
+  const frames = [
+    { el: document.getElementById('scroll-zoom-frame-3'), start: 0.00, end: 0.34, max: 8.5, pad: 250 },
+    { el: document.getElementById('scroll-zoom-frame-2'), start: 0.24, end: 0.58, max: 8.5, pad: 150 },
+    { el: document.getElementById('scroll-zoom-frame-1'), start: 0.48, end: 0.80, max: 8.5, pad: 58 },
+  ].filter(frame => frame.el);
+
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const clamp01 = value => Math.min(1, Math.max(0, value));
+  const mix = (a, b, t) => a + (b - a) * t;
+  const smooth = t => t * t * t * (t * (t * 6 - 15) + 10);
+  const segment = (progress, start, end) => clamp01((progress - start) / (end - start));
+
+  let target = 0;
+  let current = 0;
+  let raf = null;
+  let active = true;
+  let touchY = null;
+
+  function scrollDistance() {
+    return Math.max(window.innerHeight * 2.45, 1400);
+  }
+
+  function getStartScale() {
+    if (window.innerWidth <= 640) return 0.78;
+    if (window.innerWidth <= 900) return 0.68;
+    return 0.62;
+  }
+
+  function render() {
+    const startScale = getStartScale();
+    const siteT = smooth(segment(current, 0.60, 0.96));
+    const siteScale = mix(startScale, 1, siteT);
+    const startWidth = window.innerWidth * startScale;
+    const startHeight = window.innerHeight * startScale;
+    const framePadScale = window.innerWidth <= 640 ? 0.28 : 1;
+
+    frames.forEach(({ el, start, end, max }) => {
+      const t = smooth(segment(current, start, end));
+      el.style.transform = `translate(-50%, -50%) scale(${mix(1, max, t).toFixed(4)})`;
+    });
+
+    frames.forEach(({ el, pad }) => {
+      const framePad = pad * framePadScale;
+      el.style.width = `${(startWidth + framePad).toFixed(2)}px`;
+      el.style.height = `${(startHeight + framePad * 0.58).toFixed(2)}px`;
+    });
+
+    siteShell.style.transform = `translate(-50%, -50%) scale(${siteScale.toFixed(4)})`;
+    siteShell.style.borderRadius = `${mix(10, 0, siteT).toFixed(2)}px`;
+    siteShell.style.boxShadow = `0 24px 90px rgba(0, 0, 0, ${mix(0.26, 0, siteT).toFixed(3)})`;
+
+    const revealT = smooth(segment(current, 0.92, 1));
+    stage.style.opacity = (1 - revealT).toFixed(3);
+  }
+
+  function finish(skipTransition) {
+    if (!active) return;
+    active = false;
+    target = 1;
+    current = 1;
+    render();
+    if (skipTransition) stage.style.transition = 'none';
+    stage.classList.add('is-complete');
+    stage.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('scroll-zoom-active');
+    siteShell.style.transform = '';
+    siteShell.style.borderRadius = '';
+    siteShell.style.boxShadow = '';
+    window.removeEventListener('wheel', onWheel);
+    window.removeEventListener('touchstart', onTouchStart);
+    window.removeEventListener('touchmove', onTouchMove);
+    window.removeEventListener('touchend', onTouchEnd);
+    window.removeEventListener('keydown', onKeydown);
+    window.removeEventListener('resize', onResize);
+    window.setTimeout(() => stage.remove(), skipTransition ? 0 : 700);
+  }
+
+  function tick() {
+    raf = null;
+    current = mix(current, target, 0.14);
+    if (Math.abs(target - current) < 0.001) current = target;
+    render();
+
+    if (target >= 0.995 && current >= 0.985) {
+      finish(false);
+      return;
+    }
+
+    if (active && current !== target) queueRender();
+  }
+
+  function queueRender() {
+    if (!raf) raf = requestAnimationFrame(tick);
+  }
+
+  function setTarget(value) {
+    target = clamp01(value);
+    queueRender();
+  }
+
+  function onWheel(event) {
+    if (!active) return;
+    event.preventDefault();
+    setTarget(target + event.deltaY / scrollDistance());
+  }
+
+  function onTouchStart(event) {
+    if (!active || event.touches.length === 0) return;
+    touchY = event.touches[0].clientY;
+  }
+
+  function onTouchMove(event) {
+    if (!active || touchY === null || event.touches.length === 0) return;
+    const nextY = event.touches[0].clientY;
+    event.preventDefault();
+    setTarget(target + (touchY - nextY) / scrollDistance());
+    touchY = nextY;
+  }
+
+  function onTouchEnd() {
+    touchY = null;
+  }
+
+  function onKeydown(event) {
+    if (!active) return;
+    const forwardKeys = [' ', 'ArrowDown', 'PageDown'];
+    const backwardKeys = ['ArrowUp', 'PageUp'];
+    if (forwardKeys.includes(event.key)) {
+      event.preventDefault();
+      setTarget(target + 0.12);
+    } else if (backwardKeys.includes(event.key)) {
+      event.preventDefault();
+      setTarget(target - 0.12);
+    } else if (event.key === 'Home') {
+      event.preventDefault();
+      setTarget(0);
+    } else if (event.key === 'End' || event.key === 'Enter' || event.key === 'Escape') {
+      event.preventDefault();
+      setTarget(1);
+    }
+  }
+
+  function onResize() {
+    render();
+  }
+
+  render();
+  try {
+    stage.focus({ preventScroll: true });
+  } catch (error) {
+    stage.focus();
+  }
+
+  if (prefersReducedMotion) {
+    finish(true);
+    return;
+  }
+
+  window.addEventListener('wheel', onWheel, { passive: false });
+  window.addEventListener('touchstart', onTouchStart, { passive: true });
+  window.addEventListener('touchmove', onTouchMove, { passive: false });
+  window.addEventListener('touchend', onTouchEnd, { passive: true });
+  window.addEventListener('keydown', onKeydown);
+  window.addEventListener('resize', onResize);
+})();
 const isTouch = window.matchMedia('(hover: none)').matches;
 const NAV_HEIGHT = parseInt(
   getComputedStyle(document.documentElement).getPropertyValue('--nav-height')
